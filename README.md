@@ -1,8 +1,5 @@
-# Love Engine Workspace
-ROBLOX's OOP implemented into Love Engine
+# Love Universe
+Love Universe is a game engine framework that allows for simple manipulation of physics and objects in Love Engine similar to that of Roblox's object oriented structure. In other words, Love Universe is a psuedo game engine created inside the Love Engine.
 
 ### Important
-So in the making of this, the OOP part of the workspace works fine on the love engine, but having live updating interface of objects within the engine
-while making the engine not lag was difficult (tried chaining functions and looping through them), probably because I either haven't figured out
-how Love Engine works, or that I made some dumb mistake. This psuedo workspace is mostly for people to create their own objects similar to Roblox's
-OOP, creating classes etc, rendering with workspace is a bit unreliable at the moment.
+This is a work in progress, it currently has a well built object structure and tree but still need to implement everything in Love Engine into the framework such as setting blend mode for blocks and obstacles etc.
