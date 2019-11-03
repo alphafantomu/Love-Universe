@@ -15,7 +15,7 @@
     Fixed objects parenting to themselves
 
     testttttt
-
+        primary lotus
     dwadjwaidwajidwawa
 ]]
 local psuedoOutput = require('psuedoOutput');
