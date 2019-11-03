@@ -9,6 +9,7 @@ local Classes = {}; --contains all the classes that you can create objects from,
 local Stack = {}; --Psuedo Environment Memory
 local NullStack = {}; --this is actually equivalent to the children_stack standard objects have
 local Singularities = {}; --container storage for services, where only one service can exist
+local Worlds = {};
 --local Runtime = {};
 
 --so apparently null objects are considered objects rather than a namespace like in roblox's environment. Most likely to avoid weird ass errors but some of the functions are unusuable since the object itself doesn't have a physical object like a standard object does.
@@ -105,6 +106,16 @@ API.parseProperties = function(self, properties)
         return psuedoObjects:modType(default):lower() == psuedoObjects:modType(value):lower(); --needs to be replaced with the modified type
     end;
     return propApi;
+end;
+
+API.getFirstAncestor = function(self, parent)
+	local firstAncestor;
+	local locatedAncestor = false;
+	repeat
+		if 
+		firstAncestor = parent.Parent;
+	until 
+		locatedAncestor == true;
 end;
 
 API.newObject = function(self, className, parent)
@@ -343,18 +354,27 @@ World = setmetatable({
     end;
     __metatable = 'Locked';
 })
+--[[
+    Edit modes:
+    0 - No edit
+    1 - ReadOnly
+    2 - WriteOnly
+    3 - Read+WritePerms
+]]
 API:newClass('World', {
     {
         Name = 'Name';
         Generator = false;
         Default = 'World';
+        EditMode = 3;
     };
     {
         Name = 'GetUtility';
         Generator = false;
         Default = function(self, utilityClass)
-            return Singularities[utilityClass];
+            return Worlds[self].Utilities[utilityClass];
         end;
+        EditMode = 1;
     };
 }, true);
 API:newClass('Space', {
@@ -362,6 +382,7 @@ API:newClass('Space', {
         Name = 'Name';
         Generator = false;
         Default = 'Space';
+        EditMode = 3;
     };
 }, true);
 API:newClass('Time', {
@@ -369,6 +390,7 @@ API:newClass('Time', {
         Name = 'Name';
         Generator = false;
         Default = 'Time';
+        EditMode = 3;
     };
 }, true);
 API:newClass('Players', {
@@ -376,6 +398,7 @@ API:newClass('Players', {
         Name = 'Name';
         Generator = false;
         Default = 'Players';
+        EditMode = 3;
     };
 }, true);
 API:newClass('Storage', {
@@ -383,6 +406,7 @@ API:newClass('Storage', {
         Name = 'Name';
         Generator = false;
         Default = 'Storage';
+        EditMode = 3;
     };
 }, true);
 API:newClass('Database', {
@@ -390,12 +414,14 @@ API:newClass('Database', {
         Name = 'Name';
         Generator = false;
         Default = 'Database';
+        EditMode = 3;
     };
 }, true);
 API:newClass('Audio', {
     {
         Name = 'Name';
         Generator = false;
+        EditMode = 3;
         Default = 'Audio';
     };
 }, true);
@@ -404,6 +430,7 @@ API:newClass('Window', {
         Name = 'Name';
         Generator = false;
         Default = 'Window';
+        EditMode = 3;
     };
     {
         Name = 'Close';
@@ -432,6 +459,7 @@ API:newClass('Http', {
             };
             return table.concat(res, '');
         end;
+        EditMode = 1;
     };
     {
         Name = 'Post';
@@ -446,6 +474,7 @@ API:newClass('Http', {
             };
             return table.concat(res, '');
         end;
+        EditMode = 1;
     };
 }, true);
 
@@ -456,6 +485,7 @@ API:newClass('Block', {
         Name = 'Name';
         Generator = false;
         Default = 'Name';
+        EditMode = 3;
     };
     {
         Name = 'Color';
@@ -467,6 +497,7 @@ API:newClass('Block', {
             color.b = 255;
             return color;
         end;
+        EditMode = 3;
     };
     {
         Name = 'Size';
@@ -477,6 +508,7 @@ API:newClass('Block', {
             vector.y = 100;
             return vector;
         end;
+        EditMode = 3;
     };
     {
         Name = 'Position';
@@ -487,16 +519,19 @@ API:newClass('Block', {
             vector.y = 0;
             return vector;
         end;
+        EditMode = 3;
     };
     {
         Name = 'Rotation';
         Generator = false;
         Default = 0;
+        EditMode = 3;
     };
     {
         Name = 'Type';
         Generator = false;
         Default = 'line';
+        EditMode = 3;
     };
 }, false);
 --we should be able to recreate objects in new worlds
