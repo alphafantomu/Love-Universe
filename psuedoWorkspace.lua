@@ -11,7 +11,12 @@ local NullStack = {}; --this is actually equivalent to the children_stack standa
 local Singularities = {}; --container storage for services, where only one service can exist
 local Worlds = {};
 --local Runtime = {};
+--[[
+    Worlds[worldName] = {
 
+        Utilities = {};
+    }
+]]
 --so apparently null objects are considered objects rather than a namespace like in roblox's environment. Most likely to avoid weird ass errors but some of the functions are unusuable since the object itself doesn't have a physical object like a standard object does.
 API.NullMetatable = {
     __isPartOfChildren = function(self, obj)
@@ -74,9 +79,9 @@ API.stringRandom = function(self, max, includeNumbers)
 	return str;
 end;
 
-API.parseProperties = function(self, properties)
+API.parseProperties = function(self, obj, properties) --properties is the class data supplied
     local propApi = {};
-    propApi.getProperty  = function(self, index)
+    propApi.getProperty  = function(self, index) --get the property data
         for i, v in next, properties do
             if (type(v):lower() == 'table') then
                 if (v.Name == index) then
@@ -85,31 +90,35 @@ API.parseProperties = function(self, properties)
             end;
         end;
     end;
-    propApi.PropertyExists = function(self, index)
+    propApi.PropertyExists = function(self, index) --make sure the property exists
         return propApi:getProperty(index) ~= nil;
     end;
-    propApi.GetDefaultValue = function(self, index)
+    propApi.GetDefaultValue = function(self, index)  --get the default value of properties
         local property = propApi:getProperty(index);
         if (property.Generator == true) then
             if (type(property.Default):lower() == 'function') then
-                return property.Default();
+                return property.Default(obj); --send the object
             end;
         end;
         return property.Default;
     end;
-    propApi.CanRewrite = function(self, index)
+    propApi.CanRewrite = function(self, index) --uhh wtf?, so basically standard 
         local default = propApi:GetDefaultValue(index);
         return type(default):lower() ~= 'function';
     end;
-    propApi.NewValueAcceptable = function(self, index, value)
+    propApi.NewValueAcceptable = function(self, index, value) --uhhhhh wtf?!?!?!
         local default = propApi:GetDefaultValue(index);
         return psuedoObjects:modType(default):lower() == psuedoObjects:modType(value):lower(); --needs to be replaced with the modified type
     end;
     return propApi;
 end;
 
-API.getFirstAncestor = function(self, parent)
-	local firstAncestor = parent;
+API.isWorldObject = function(self, obj)
+    return Worlds[obj] ~= nil;
+end;
+
+API.getFirstAncestor = function(self, obj)
+	local firstAncestor = obj;
 	local locatedAncestor = false;
 	repeat
 		local nextAncestor = firstAncestor.Parent;
@@ -130,15 +139,25 @@ API.newObject = function(self, className, parent)
     local meta = getmetatable(obj);
     local classdata = Classes[className]; --get information about the class
     --Service limited to only 1 object per world
+    if (className == 'World' and Worlds[obj] == nil) then
+        Worlds[obj] = {
+            Utilities = {};
+        };
+    end;
     if (classdata.Limited == true) then
-        assert(Singularities[classdata.Name] == nil, 'Object already exists'); --Error is service already exists
-        Singularities[classdata.Name] = obj;
+        if (parent ~= nil) then
+            local getObjectWorld = API:getFirstAncestor(parent);
+            assert(Worlds[getObjectWorld].Utilities[classdata.Name] == nil, 'Object already exists'); --Error is service already exists
+            Worlds[getObjectWorld].Utilities[classdata.Name] = obj;
+        end;
+        --[[assert(Singularities[classdata.Name] == nil, 'Object already exists'); --Error is service already exists
+        Singularities[classdata.Name] = obj;]]
     end;
     --[[g
         !! I have to fix the table replicator and also I have to add support for default properties and standard properties
     ]]
     local children_stack = {};
-    local defaultProperties = {
+    local defaultProperties = { --omg this has to be hard coded kms
         ClassName = classdata.Name;
         Parent = parent or nil;
         Destroy = function(self)
@@ -169,21 +188,35 @@ API.newObject = function(self, className, parent)
             end;
         end;
     };
-    local standardProperties = {};
+    --[[
+        This is a little strange, but there are three different type of properties:
+        - Class Properties - Pre-defined properties for a certain class, not actively changing and is only used as reference
+        - Default Properties - Properties at the inherit level, also actively changing but is also universal over all instances, in roblox
+        this would be described as the <<<ROOT>>> class or the Instance base class.
+        - Standard Properties - Properties at the surface level, actively changing etc.
+    ]]
+    local standardProperties = {}; --the new set being written
     local classProperties = classdata.Properties;
-    local parsed = API:parseProperties(classProperties);
+    local parsed = API:parseProperties(obj, classProperties);
     meta.__index = function(self, index)
         if (Stack[obj] == nil and obj ~= nil) then
             --print('Memory warning: You\'re trying to interact with an object that\'s not part of the stack');
         end;
-        if (parsed:PropertyExists(index) == true) then
+        if (parsed:PropertyExists(index) == true) then --if the property exists in class properties
             local property = parsed:getProperty(index);
+            assert(property.EditMode == 1 or property.EditMode == 3, 'Property '..index..' cannot be read');
+            --this was confusing at first, but essentially
+            --[[
+                this is assuming "index" exists in class properties, like "Name" or something
+                if "index" doesn't exist in standard properties, then we're basically setting it for standard properties
+                so that it exists, value being the default value. Then it'll grab the index or the default value if it's somehow missing?
+            ]]
             if (rawget(standardProperties, index) == nil and property.Generator == true) then
                 rawset(standardProperties, index, parsed:GetDefaultValue(index));
             end;
             return rawget(standardProperties, index) or parsed:GetDefaultValue(index);
         end;
-        return rawget(defaultProperties, index) or rawget(defaultProperties, 'FindChild')(obj, index);
+        return rawget(defaultProperties, index) or rawget(defaultProperties, 'FindChild')(obj, index); --find index in default 
     end;
     --[[
         meta.__index will be fired when we're trying to find a default property FIRST, a standard property SECOND, and lastly one of their own children THIRD
@@ -193,10 +226,17 @@ API.newObject = function(self, className, parent)
         if (Stack[obj] == nil and obj ~= nil) then
             --print('Memory warning: You\'re trying to interact with an object that\'s not part of the stack');
         end;
+        if (parsed:PropertyExists(index) == true) then
+            local property = parsed:getProperty(index);
+            assert(property.EditMode == 2 or property.EditMode == 3, 'Property '..index..' cannot be rewritten');
+        end;
+        --this is the parenting functionality, need to fix objects parenting themselves and attaching utilities to new worlds
         if (type(index):lower() == 'string') then
-            if (index == 'Parent') then
+            if (index == 'Parent') then --special condition for index "Parent"
                 return pcall(function()
-                    if (value ~= rawget(defaultProperties, 'Parent')) then
+                    failure(value ~= obj, 'Attempting to change the parent of an object to itself');
+                    --value is the actual object
+                    if (value ~= rawget(defaultProperties, 'Parent') and value ~= obj) then --don't let it through if we're literally just spamming the parent to itself
                         --where it says NewParentObject and OldParentObject, we're targeting the STACK OBJECT, not the actual object itself.
                         local NewParentObject = Stack[value] or {__metatable = API.NullMetatable;}; --if the new parent is found in memory or replace with nil
                         local OldParentObject = Stack[rawget(defaultProperties, 'Parent')] or {__metatable = API.NullMetatable;}; --if the old parent is found in memory or replace with nil
@@ -224,14 +264,16 @@ API.newObject = function(self, className, parent)
                                 end;
                             end;
                         end;
-                        
+
                     end;
                 end);
+
             end;
         end;
         
         if (defaultProperties[index] ~= nil) then --prioritize default properties
-            assert(type(defaultProperties[index]):lower() ~= 'function', 'Property cannot be overrided');
+            assert(type(defaultProperties[index]):lower() ~= 'function', 'Property cannot be overrided'); --can't override functions at all
+            assert(index ~= 'ClassName', 'Property ClassName cannot be overrided');
             if (psuedoObjects:modType(value):lower() == psuedoObjects:modType(defaultProperties[index]):lower()) then --must be the same type
                 rawset(defaultProperties, index, value);
             end;
@@ -378,7 +420,7 @@ API:newClass('World', {
         Name = 'GetUtility';
         Generator = false;
         Default = function(self, utilityClass)
-            return Singularities[utilityClass];
+            return Worlds[self].Utilities[utilityClass];
         end;
         EditMode = 1;
     };
