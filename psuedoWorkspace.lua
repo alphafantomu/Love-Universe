@@ -240,7 +240,7 @@ API.newObject = function(self, className, parent)
                         --where it says NewParentObject and OldParentObject, we're targeting the STACK OBJECT, not the actual object itself.
                         local NewParentObject = Stack[value] or {__metatable = API.NullMetatable;}; --if the new parent is found in memory or replace with nil
                         local OldParentObject = Stack[rawget(defaultProperties, 'Parent')] or {__metatable = API.NullMetatable;}; --if the old parent is found in memory or replace with nil
-
+                        
                         local NewMeta, OldMeta = NewParentObject.__metatable, OldParentObject.__metatable; --grab both parent's metatables
                         --obj is described as OldMeta, the actual object not the stack object
                         --print(NewMeta:__isPartOfChildren(obj), OldMeta:__isPartOfChildren(obj), OldMeta == API.NullMetatable);
