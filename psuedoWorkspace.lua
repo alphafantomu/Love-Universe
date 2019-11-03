@@ -1,4 +1,7 @@
 
+--[[
+    ok so apparently the FUCKING PROPERTIES FOR SELF-CREATED PROPERTIES ARE SHARED BETWEEN EACH OTHER LIKE DF???
+]]
 local http = require('socket.http'); --Http extension for lua, provides socket usage etc
 
 local API = {}; --main psuedoWorkspace API framework
@@ -126,7 +129,8 @@ API.newObject = function(self, className, parent)
             if (Stack[descendant].__object ~= nil) then
                 Stack[descendant].__metatable:__removeChildren(obj);
             end;
-            return obj.Parent == nil;
+            Stack[obj] = nil;
+            return Stack[obj] == nil;
         end;
         FindChild = function(self, name)
             local all = meta:__getChildren();
@@ -152,6 +156,9 @@ API.newObject = function(self, className, parent)
     local classProperties = classdata.Properties;
     local parsed = API:parseProperties(classProperties);
     meta.__index = function(self, index)
+        if (Stack[obj] == nil and obj ~= nil) then
+            --print('Memory warning: You\'re trying to interact with an object that\'s not part of the stack');
+        end;
         if (parsed:PropertyExists(index) == true) then
             local property = parsed:getProperty(index);
             if (rawget(standardProperties, index) == nil and property.Generator == true) then
@@ -166,6 +173,9 @@ API.newObject = function(self, className, parent)
     ]]
     meta.__newindex = function(self, index, value) 
         assert(parsed:PropertyExists(index) or defaultProperties[index] ~= nil, 'Property cannot be found');
+        if (Stack[obj] == nil and obj ~= nil) then
+            --print('Memory warning: You\'re trying to interact with an object that\'s not part of the stack');
+        end;
         if (type(index):lower() == 'string') then
             if (index == 'Parent') then
                 return pcall(function()
@@ -223,7 +233,11 @@ API.newObject = function(self, className, parent)
 
     ]]
     meta.__tostring = function(self)
-        return rawget(standardProperties, 'Name') or 'Removed';
+        local TrueName = rawget(standardProperties, 'Name') or parsed:GetDefaultValue('Name');
+        if (Stack[obj] == nil and obj ~= nil) then
+            return 'Object removed from stack';
+        end;
+        return TrueName;
     end;
     --[[
         meta.__tostring will be fired whenever you try to print the object, it'll come out as whatever the object is named as.
@@ -311,6 +325,24 @@ API.getStack = function(self)
     return Stack;
 end;
 
+World = setmetatable({
+    new = function(name)
+        local NewWorld = API:newObject('World');
+        API:newObject('Space', NewWorld);
+        API:newObject('Time', NewWorld);
+        API:newObject('Players', NewWorld);
+        API:newObject('Storage', NewWorld);
+        API:newObject('Database', NewWorld);
+        API:newObject('Http', NewWorld);
+        return NewWorld;
+    end;
+}, {
+    __newindex = function(self, index, value)
+        fatal('Attempt to add a new index ('..tostring(index)..') to Vector');
+        return nil;
+    end;
+    __metatable = 'Locked';
+})
 API:newClass('World', {
     {
         Name = 'Name';
@@ -367,11 +399,26 @@ API:newClass('Audio', {
         Default = 'Audio';
     };
 }, true);
+API:newClass('Window', {
+    {
+        Name = 'Name';
+        Generator = false;
+        Default = 'Window';
+    };
+    {
+        Name = 'Close';
+        Generator = false;
+        Default = function(self)
+            return love.window.close();
+        end;
+    };
+}, true);
 API:newClass('Http', {
     {
         Name = 'Name';
         Generator = false;
         Default = 'Http';
+        EditMode = 3;
     };
     {
         Name = 'Get';
@@ -401,6 +448,8 @@ API:newClass('Http', {
         end;
     };
 }, true);
+
+--------------------------------------Objects-----------------------------------------
 
 API:newClass('Block', {
     {
@@ -450,6 +499,7 @@ API:newClass('Block', {
         Default = 'line';
     };
 }, false);
+--we should be able to recreate objects in new worlds
 
 API.CurrentWorld = API:newObject('World');
 API:newObject('Space', API.CurrentWorld);
