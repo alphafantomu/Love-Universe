@@ -15,6 +15,8 @@
     Fixed objects parenting to themselves
 
     testttttt
+
+    dwadjwaidwajidwawa
 ]]
 local psuedoOutput = require('psuedoOutput');
 local psuedoObjects = require('psuedoObjects');
