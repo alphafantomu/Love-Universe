@@ -22,12 +22,14 @@ local Http = World:GetUtility('Http');
 local Space = World:GetUtility('Space');
 
 local Block, Block2, Block3;
-
+--local newworld = World.new('Lmaoooo');
 Block = psuedoLife:newObject('Block', Space);
     Block.Name = 'Lol';
-    
+    Block.Position = Vector.new(500, 1);
     Block.Parent = Space;
-function love.load(args, rawargs) --although this is called exactly at the beginning of the game, the rest of the game code outside runs first.
+    --print(World.Parent == nil);
+    print(psuedoLife:getFirstAncestor(World));
+function love.load(args) --although this is called exactly at the beginning of the game, the rest of the game code outside runs first.
     table.foreach(args, print);
 end;
 

@@ -109,13 +109,19 @@ API.parseProperties = function(self, properties)
 end;
 
 API.getFirstAncestor = function(self, parent)
-	local firstAncestor;
+	local firstAncestor = parent;
 	local locatedAncestor = false;
 	repeat
-		if 
-		firstAncestor = parent.Parent;
+		local nextAncestor = firstAncestor.Parent;
+		if (nextAncestor == nil) then
+			locatedAncestor = true;
+			break;
+		else
+			firstAncestor = nextAncestor;
+		end;
 	until 
 		locatedAncestor == true;
+	return firstAncestor;
 end;
 
 API.newObject = function(self, className, parent)
@@ -372,7 +378,7 @@ API:newClass('World', {
         Name = 'GetUtility';
         Generator = false;
         Default = function(self, utilityClass)
-            return Worlds[self].Utilities[utilityClass];
+            return Singularities[utilityClass];
         end;
         EditMode = 1;
     };
