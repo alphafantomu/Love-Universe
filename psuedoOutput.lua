@@ -1,12 +1,22 @@
 
 local API = {};
 
+API.failure = function(self, condition, ...)
+    if (condition == false) then
+        print('[Failure]: ', ...);
+    end;
+end;
+
 API.warn = function(self, ...)
-    print('[WARNING]: ', ...);
+    print('[Warning]: ', ...);
 end;
 
 API.fatalerror = function(self, ...)
-    print('[FATAL ERROR]: ', ...);
+    print('[Fatal Error]: ', ...);
+end;
+
+failure = function(...)
+    return API:failure(...);
 end;
 
 warn = function(...)
