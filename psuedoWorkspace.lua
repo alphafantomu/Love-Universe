@@ -118,6 +118,7 @@ API.isWorldObject = function(self, obj)
 end;
 
 API.getFirstAncestor = function(self, obj)
+    if (obj == nil) then return nil; end;
 	local firstAncestor = obj;
 	local locatedAncestor = false;
 	repeat
@@ -222,7 +223,20 @@ API.newObject = function(self, className, parent)
         meta.__index will be fired when we're trying to find a default property FIRST, a standard property SECOND, and lastly one of their own children THIRD
     ]]
     meta.__newindex = function(self, index, value) 
-        assert(parsed:PropertyExists(index) or defaultProperties[index] ~= nil, 'Property cannot be found');
+        --print(index, value);
+        local isParent = false;
+        if (index ~= 'Parent') then
+            if (defaultProperties[index] == nil) then
+                if (parsed:PropertyExists(index) == false) then
+                    assert(false, 'Property cannot be found');
+                end;
+            end;
+        else
+            isParent = true;
+        end;
+        if (isParent == false) then
+            assert(parsed:PropertyExists(index), 'Property cannot be found');
+        end;
         if (Stack[obj] == nil and obj ~= nil) then
             --print('Memory warning: You\'re trying to interact with an object that\'s not part of the stack');
         end;
@@ -240,10 +254,18 @@ API.newObject = function(self, className, parent)
                         --where it says NewParentObject and OldParentObject, we're targeting the STACK OBJECT, not the actual object itself.
                         local NewParentObject = Stack[value] or {__metatable = API.NullMetatable;}; --if the new parent is found in memory or replace with nil
                         local OldParentObject = Stack[rawget(defaultProperties, 'Parent')] or {__metatable = API.NullMetatable;}; --if the old parent is found in memory or replace with nil
-                        
+                        --NewParentObject is the parent we're trying to set to
+                        --OldParentObject is the current parent we're grabbing the object 
                         local NewMeta, OldMeta = NewParentObject.__metatable, OldParentObject.__metatable; --grab both parent's metatables
                         --obj is described as OldMeta, the actual object not the stack object
                         --print(NewMeta:__isPartOfChildren(obj), OldMeta:__isPartOfChildren(obj), OldMeta == API.NullMetatable);
+                        --[[
+                            NewMeta.obj == nil; --the new parent doesn't have the object
+                            OldMeta.obj ~= nil; --the old parent has the object
+
+                            NewMeta.obj == nil --the new parent doesn't have the object
+                            OldMeta == nil; --the current parent doesn't exist
+                        ]]
                         if (NewMeta:__isPartOfChildren(obj) == false and --have to make sure the new parent already doesn't have the object
                             OldMeta:__isPartOfChildren(obj) == true or  --and we have to make sure the old parent already has the object in its children
                             NewMeta:__isPartOfChildren(obj) == false and --or we can check that the new parent doesnt have the object
@@ -253,24 +275,43 @@ API.newObject = function(self, className, parent)
                                 part.Parent = nil;
                             ]]
                             --if the old parenting and new parenting checks are passed, then
+                            --shit we need to remove utilities if it's ever destroyed
+                            if (classdata.Limited == true) then --probably means the obj is one per world, probably a utility
+                                local getCurrentWorld = API:getFirstAncestor(rawget(defaultProperties, 'Parent'));
+                                failure(getCurrentWorld == nil, 'Utility already in parent of another world');
+                                assert(getCurrentWorld == nil, 'Utility already in parent of another world');
+                                if (getCurrentWorld == nil) then --new utility doesn't exist in a world yet
+                                    --then we need to check if the new parent has an ancestor that's a world
+                                    local nextWorld = API:getFirstAncestor(NewParentObject.__object);
+                                    if (nextWorld ~= nil) then --if it doesn't exist then, we'll assume it's also nil, so shit
+                                        if (Worlds[nextWorld] == nil) then
+                                            Worlds[nextWorld] = {
+                                                Utilities = {};
+                                            };
+                                        end;
+                                        if (Worlds[nextWorld].Utilities[classdata.Name] == nil) then
+                                            Worlds[nextWorld].Utilities[classdata.Name] = obj;
+                                        end;
+                                    end;
+                                end;
+                            end;
                             OldMeta:__removeChildren(obj); --we need to remove the old parent's object from its children
                             if (OldMeta:__isPartOfChildren(obj) == false) then --we need to make sure that the old parent no longer has the object in their children
                                 NewMeta:__addChildren(obj); --if it passes then the new parent will inherit the object in its children
-                                return rawset(defaultProperties, 'Parent', NewParentObject.__object); --we need to set the parent property of properties to the new object
+                                rawset(defaultProperties, 'Parent', NewParentObject.__object); --we need to set the parent property of properties to the new object
                             else
                                 OldMeta:__addChildren(obj); --for some fucking reason it failed, so uhh we have to add the obj back into the old parent just incase
                                 if (rawget(defaultProperties, 'Parent') ~= OldParentObject.__object) then
-                                    return rawset(defaultProperties, 'Parent', OldParentObject.__object); --we need to set the parent property of properties to the old object JUST INCASE
+                                    rawset(defaultProperties, 'Parent', OldParentObject.__object); --we need to set the parent property of properties to the old object JUST INCASE
                                 end;
                             end;
                         end;
-
+                        
                     end;
                 end);
 
             end;
         end;
-        
         if (defaultProperties[index] ~= nil) then --prioritize default properties
             assert(type(defaultProperties[index]):lower() ~= 'function', 'Property cannot be overrided'); --can't override functions at all
             assert(index ~= 'ClassName', 'Property ClassName cannot be overrided');
@@ -330,8 +371,18 @@ API.newObject = function(self, className, parent)
             if (children_stack[v] ~= nil) then
                 children_stack[v] = nil;
                 if (Stack[v] ~= nil) then
+                    local Object = Stack[v].__object;
                     Stack[v].__object.Parent = nil;
+                    local ClassName = Object.ClassName;
+                    local classdata = Classes[ClassName];
+                    if (classdata.Limited == true) then --probably means the obj is one per world, probably a utility
+                        local getCurrentWorld = API:getFirstAncestor(Object.Parent);
+                        if (Worlds[getCurrentWorld] ~= nil) then
+                            Worlds[getCurrentWorld].Utilities[classdata.Name] = nil;
+                        end;
+                    end;
                 end;
+                --check if v is a utility, if it is, then remove
             end;
         end;
     end;
@@ -385,9 +436,9 @@ API.getStack = function(self)
 end;
 
 World = setmetatable({
-    new = function(name)
+    new = function()
         local NewWorld = API:newObject('World');
-        API:newObject('Space', NewWorld);
+        --API:newObject('Space', NewWorld);
         API:newObject('Time', NewWorld);
         API:newObject('Players', NewWorld);
         API:newObject('Storage', NewWorld);
@@ -568,6 +619,14 @@ API:newClass('Block', {
             return vector;
         end;
         EditMode = 3;
+    };
+    {
+        Name = 'Touched';
+        Generator = true;
+        Default = function() 
+            return psuedoObjects:createType('Event');
+        end;
+        EditMode = 1;
     };
     {
         Name = 'Rotation';
