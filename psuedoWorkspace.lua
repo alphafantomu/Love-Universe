@@ -448,7 +448,7 @@ end;
 World = setmetatable({
     new = function()
         local NewWorld = API:newObject('World');
-        --API:newObject('Space', NewWorld);
+        API:newObject('Space', NewWorld);
         API:newObject('Time', NewWorld);
         API:newObject('Players', NewWorld);
         API:newObject('Storage', NewWorld);

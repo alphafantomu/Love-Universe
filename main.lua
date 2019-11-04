@@ -8,9 +8,7 @@
 
     Need to improve vectors, colors, etc, add magnitude to vectors
     Add the ability of matrices AFTER YOU LEARN LINEAR ALGEBRA
-    Add events and functionality for callbacks
-    
-    Added events and callbacks
+
 ]]
 
 local psuedoOutput = require('psuedoOutput');
