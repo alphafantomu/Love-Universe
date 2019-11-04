@@ -17,19 +17,32 @@
 
 local psuedoOutput = require('psuedoOutput');
 local psuedoObjects = require('psuedoObjects');
+local psuedoThreading = require('psuedoThreading');
+local psuedoEvents = require('psuedoEvents');
 local psuedoPhysics = require('psuedoPhysics');
 local psuedoLife = require('psuedoWorkspace');
 local psuedoRenderer = require('psuedoRenderer');
+local roblox2D = require('roblox2D')
 
 local CurrentWorld = psuedoLife.CurrentWorld;
 local Http = CurrentWorld:GetUtility('Http');
 local Space = CurrentWorld:GetUtility('Space');
 
-local Block;
+local signal = CurrentWorld.Beat:Connect(function(a, b)
+    print(a, b);
+end);
+print("signal", signal);
+signal.Connected = false;
+print(signal.connected);
+print(CurrentWorld.Beat.wait, CurrentWorld.Beat.Wait, CurrentWorld.Beat.Connect, CurrentWorld.Beat.connect);
 
-local Signal = Block.Touched:connect(function()
+local getEventData = psuedoEvents:getEvent(CurrentWorld.Beat);
+local remote = getEventData.Remote;
+remote:FireAll(9, 3);
+signal:disconnect();
+print(signal.Connected);
+remote:FireAll(20, 20);
 
-end)
 function love.load(args) --although this is called exactly at the beginning of the game, the rest of the game code outside runs first.
     table.foreach(args, print);
 end;

@@ -475,6 +475,15 @@ API:newClass('World', {
         end;
         EditMode = 1;
     };
+    {
+        Name = 'Beat';
+        Generator = true;
+        Default = function(self)
+            local Event = psuedoObjects:createType('Event');
+            return Event;
+        end;
+        EditMode = 1;
+    };
 }, true);
 API:newClass('Space', {
     {
