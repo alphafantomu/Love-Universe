@@ -1,4 +1,11 @@
 
+--[[
+    local Vector = Vector.new(5, 3);
+    Vector.Magnitude --this has to be constantly calculated
+    Vector.Unit --this has to be constantly calculated
+
+    local newVector = Vector * Vector;
+]]
 local API = {};
 local types = {};
 local userdataCache = {};
@@ -47,8 +54,12 @@ API.modType = function(self, var)
     return defaultType;
 end;
 
-
-
+API:newType('Vector', {
+    x = 0;
+    y = 0;
+}, {
+    __add = function(self, )
+})
 API:newType('Color', {
     r = 0;
     g = 0;
@@ -63,7 +74,6 @@ API:newType('Vector', {
 API:newType('Ray', {
     status = false;
 })
-
 
 --the global variable itself is connected since by doing Block.Position, we're grabbing the vector that's already preset in the class, we need to make a new class everytime its changed
 Vector = setmetatable({
