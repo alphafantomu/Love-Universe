@@ -177,7 +177,7 @@ local eventProperties = {
             if (type(self):lower() == 'event') then
                 --[[psuedoThreading:waitUntil(function()
                     return #signalNetwork[event] > 0;
-                end);
+                end, 10);
                 
                 So the thing with this is, #signalNetwork[event] tells us that a signal is coming in to
                 be looked at and be fired. then the signal will be removed from signalNetwork

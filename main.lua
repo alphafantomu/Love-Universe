@@ -39,8 +39,7 @@ print(CurrentWorld.Beat.wait, CurrentWorld.Beat.Wait, CurrentWorld.Beat.Connect,
 local getEventData = psuedoEvents:getEvent(CurrentWorld.Beat);
 local remote = getEventData.Remote;
 remote:FireAll(9, 3);
-signal:disconnect();
-print(signal.Connected);
+psuedoThreading:waitms(5000);
 remote:FireAll(20, 20);
 
 function love.load(args) --although this is called exactly at the beginning of the game, the rest of the game code outside runs first.
