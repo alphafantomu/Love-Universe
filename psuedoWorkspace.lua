@@ -102,9 +102,15 @@ API.parseProperties = function(self, obj, properties) --properties is the class 
         end;
         return property.Default;
     end;
+    --[[
+        Only times when you can rewrite are
+        - when the default value isn't a function AND IsCallback is false
+        - when the default value is a function AND IsCallback is true
+    ]]
     propApi.CanRewrite = function(self, index) --uhh wtf?, so basically standard 
         local default = propApi:GetDefaultValue(index);
-        return type(default):lower() ~= 'function';
+        local property = propApi:getProperty(index);
+        return (type(default):lower() ~= 'function' and property.IsCallback == false) or (type(default):lower() == 'function' and property.IsCallback == true);
     end;
     propApi.NewValueAcceptable = function(self, index, value) --uhhhhh wtf?!?!?!
         local default = propApi:GetDefaultValue(index);
@@ -312,7 +318,11 @@ API.newObject = function(self, className, parent)
 
             end;
         end;
-        if (defaultProperties[index] ~= nil) then --prioritize default properties
+        --[[
+            we need to modify the canceling method, because now we want callbacks to be implemented
+        ]]
+        if (defaultProperties[index] ~= nil and parsed:PropertyExists(index) == true) then --prioritize default properties
+            --default properties probably shouldn't have any callbacks
             assert(type(defaultProperties[index]):lower() ~= 'function', 'Property cannot be overrided'); --can't override functions at all
             assert(index ~= 'ClassName', 'Property ClassName cannot be overrided');
             if (psuedoObjects:modType(value):lower() == psuedoObjects:modType(defaultProperties[index]):lower()) then --must be the same type
@@ -464,12 +474,14 @@ API:newClass('World', {
     {
         Name = 'Name';
         Generator = false;
+        IsCallback = false;
         Default = 'World';
         EditMode = 3;
     };
     {
         Name = 'GetUtility';
         Generator = false;
+        IsCallback = false;
         Default = function(self, utilityClass)
             return Worlds[self].Utilities[utilityClass];
         end;
@@ -478,17 +490,26 @@ API:newClass('World', {
     {
         Name = 'Beat';
         Generator = true;
+        IsCallback = false;
         Default = function(self)
             local Event = psuedoObjects:createType('Event');
             return Event;
         end;
         EditMode = 1;
     };
+    {
+        Name = 'Beamed';
+        Generator = false;
+        IsCallback = true;
+        Default = function(self)end;
+        EditMode = 3;
+    };
 }, true);
 API:newClass('Space', {
     {
         Name = 'Name';
         Generator = false;
+        IsCallback = false;
         Default = 'Space';
         EditMode = 3;
     };
@@ -497,6 +518,7 @@ API:newClass('Time', {
     {
         Name = 'Name';
         Generator = false;
+        IsCallback = false;
         Default = 'Time';
         EditMode = 3;
     };
@@ -505,6 +527,7 @@ API:newClass('Players', {
     {
         Name = 'Name';
         Generator = false;
+        IsCallback = false;
         Default = 'Players';
         EditMode = 3;
     };
@@ -513,6 +536,7 @@ API:newClass('Storage', {
     {
         Name = 'Name';
         Generator = false;
+        IsCallback = false;
         Default = 'Storage';
         EditMode = 3;
     };
@@ -521,6 +545,7 @@ API:newClass('Database', {
     {
         Name = 'Name';
         Generator = false;
+        IsCallback = false;
         Default = 'Database';
         EditMode = 3;
     };
@@ -529,6 +554,7 @@ API:newClass('Audio', {
     {
         Name = 'Name';
         Generator = false;
+        IsCallback = false;
         EditMode = 3;
         Default = 'Audio';
     };
@@ -537,6 +563,7 @@ API:newClass('Window', {
     {
         Name = 'Name';
         Generator = false;
+        IsCallback = false;
         Default = 'Window';
         EditMode = 3;
     };
@@ -552,12 +579,14 @@ API:newClass('Http', {
     {
         Name = 'Name';
         Generator = false;
+        IsCallback = false;
         Default = 'Http';
         EditMode = 3;
     };
     {
         Name = 'Get';
         Generator = false;
+        IsCallback = false;
         Default = function(self, url)
             local res = {};
             local responseData = http.request{
@@ -572,6 +601,7 @@ API:newClass('Http', {
     {
         Name = 'Post';
         Generator = false;
+        IsCallback = false;
         Default = function(self, url, body)
             local res = {};
             local responseData = http.request{
@@ -592,12 +622,14 @@ API:newClass('Block', {
     {
         Name = 'Name';
         Generator = false;
+        IsCallback = false;
         Default = 'Name';
         EditMode = 3;
     };
     {
         Name = 'Color';
         Generator = true;
+        IsCallback = false;
         Default = function() 
             local color = psuedoObjects:createType('Color');
             color.r = 255;
@@ -610,6 +642,7 @@ API:newClass('Block', {
     {
         Name = 'Size';
         Generator = true;
+        IsCallback = false;
         Default = function() 
             local vector = psuedoObjects:createType('Vector');
             vector.x = 100;
@@ -621,6 +654,7 @@ API:newClass('Block', {
     {
         Name = 'Position';
         Generator = true;
+        IsCallback = false;
         Default = function() 
             local vector = psuedoObjects:createType('Vector');
             vector.x = 0;
@@ -632,6 +666,7 @@ API:newClass('Block', {
     {
         Name = 'Touched';
         Generator = true;
+        IsCallback = false;
         Default = function() 
             return psuedoObjects:createType('Event');
         end;
@@ -640,12 +675,14 @@ API:newClass('Block', {
     {
         Name = 'Rotation';
         Generator = false;
+        IsCallback = false;
         Default = 0;
         EditMode = 3;
     };
     {
         Name = 'Type';
         Generator = false;
+        IsCallback = false;
         Default = 'line';
         EditMode = 3;
     };

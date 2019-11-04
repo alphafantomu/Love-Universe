@@ -34,9 +34,15 @@ API.parseProperties = function(self, obj, properties)
         end;
         return property.default;
     end;
+    --[[
+        Only times when you can rewrite are
+        - when the default value isn't a function AND IsCallback is false
+        - when the default value is a function AND IsCallback is true
+    ]]
     propApi.CanRewrite = function(self, index) --uhh wtf?, so basically standard 
         local default = propApi:GetDefaultValue(index);
-        return type(default):lower() ~= 'function';
+        local property = propApi:GetProperty(index);
+        return (type(default):lower() ~= 'function' and property.is_callback == false) or (type(default):lower() == 'function' and property.is_callback == true);
     end;
     propApi.NewValueAcceptable = function(self, index, value) --uhhhhh wtf?!?!?!
         local default = propApi:GetDefaultValue(index);
@@ -109,22 +115,33 @@ API:newType('Vector', {
     {
         index = 'x';
         function_dependent = false;
+        is_callback = false;
         default = 0;
         edit_mode = 3;
     };
     {
         index = 'y';
         function_dependent = false;
+        is_callback = false;
         default = 0;
         edit_mode = 3;
     };
     {
         index = 'Magnitude';
         function_dependent = true;
+        is_callback = false;
         default = function(self)
             return math.sqrt(self.x^2 + self.y^2);
         end;
         edit_mode = 1;
+    };
+    {
+        index = 'Check';
+        function_dependent = false;
+        is_callback = true;
+        default = function(self)
+        end;
+        edit_mode = 3;
     };
 }, {
     --[[__add = function(vector1, vector2)
@@ -145,18 +162,21 @@ API:newType('Color', {
     {
         index = 'r';
         function_dependent = false;
+        is_callback = false;
         default = 0;
         edit_mode = 3;
     };
     {
         index = 'g';
         function_dependent = false;
+        is_callback = false;
         default = 0;
         edit_mode = 3;
     };
     {
         index = 'b';
         function_dependent = false;
+        is_callback = false;
         default = 0;
         edit_mode = 3;
     };

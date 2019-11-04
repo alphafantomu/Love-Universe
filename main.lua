@@ -10,9 +10,7 @@
     Add the ability of matrices AFTER YOU LEARN LINEAR ALGEBRA
     Add events and functionality for callbacks
     
-    Added EditModes 0, 1, 2, and 3
-    Fixed objects parenting to themselves
-    Added ability to readd services to worlds, and remove services
+    Added events and callbacks
 ]]
 
 local psuedoOutput = require('psuedoOutput');
@@ -28,20 +26,10 @@ local CurrentWorld = psuedoLife.CurrentWorld;
 local Http = CurrentWorld:GetUtility('Http');
 local Space = CurrentWorld:GetUtility('Space');
 
-local signal = CurrentWorld.Beat:Connect(function(a, b)
-    print(a, b);
-end);
-print("signal", signal);
-signal.Connected = false;
-print(signal.connected);
-print(CurrentWorld.Beat.wait, CurrentWorld.Beat.Wait, CurrentWorld.Beat.Connect, CurrentWorld.Beat.connect);
-
-local getEventData = psuedoEvents:getEvent(CurrentWorld.Beat);
-local remote = getEventData.Remote;
-remote:FireAll(9, 3);
-psuedoThreading:waitms(5000);
-remote:FireAll(20, 20);
-
+local vec = Vector.new(5, 2);
+vec.Check(5, 8);
+vec.Check = function(a, b) print(a, b) end;
+vec.Check(5, 12);
 function love.load(args) --although this is called exactly at the beginning of the game, the rest of the game code outside runs first.
     table.foreach(args, print);
 end;
