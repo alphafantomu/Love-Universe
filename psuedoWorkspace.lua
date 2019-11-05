@@ -487,23 +487,6 @@ API:newClass('World', {
         end;
         EditMode = 1;
     };
-    {
-        Name = 'Beat';
-        Generator = true;
-        IsCallback = false;
-        Default = function(self)
-            local Event = psuedoObjects:createType('Event');
-            return Event;
-        end;
-        EditMode = 1;
-    };
-    {
-        Name = 'Beamed';
-        Generator = false;
-        IsCallback = true;
-        Default = function(self)end;
-        EditMode = 3;
-    };
 }, true);
 API:newClass('Space', {
     {
