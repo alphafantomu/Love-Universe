@@ -1,7 +1,3 @@
-
---[[
-    ok so apparently the FUCKING PROPERTIES FOR SELF-CREATED PROPERTIES ARE SHARED BETWEEN EACH OTHER LIKE DF???
-]]
 local http = require('socket.http'); --Http extension for lua, provides socket usage etc
 
 local API = {}; --main psuedoWorkspace API framework
@@ -567,6 +563,23 @@ API:newClass('Block', {
             vector.y = 0;
             return vector;
         end;
+        EditMode = 3;
+    };
+    {
+        Name = 'Velocity';
+        Generator = true;
+        Default = function() 
+            local vector = psuedoObjects:createType('Vector');
+            vector.x = 0;
+            vector.y = 0;
+            return vector;
+        end;
+        EditMode = 3;
+    };
+    {
+        Name = 'Collidable';
+        Generator = true;
+        Default = true;
         EditMode = 3;
     };
     {

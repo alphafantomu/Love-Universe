@@ -48,7 +48,6 @@ API.modType = function(self, var)
 end;
 
 
-
 API:newType('Color', {
     r = 0;
     g = 0;

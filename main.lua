@@ -23,24 +23,35 @@ local psuedoLife = require('psuedoWorkspace');
 local psuedoRenderer = require('psuedoRenderer');
 
 local World = psuedoLife.CurrentWorld;
+local loveWorld 
 local Http = World:GetUtility('Http');
 local Space = World:GetUtility('Space');
 
 local Block, Block2, Block3;
 --local newworld = World.new('Lmaoooo');
 Block = psuedoLife:newObject('Block', Space);
+
     Block.Name = 'Lol';
-    Block.Position = Vector.new(500, 1);
-    Block.Parent = Block; --fuck apparently we can parent things to themselves
-    print(Block.Parent);
+    Block.Position = Vector.new(2, 1);
+    Block.Velocity = Vector.new(5, 0)
+    Block.Parent = World;
     --Block.GetChildren = nil;
    -- World.ClassName = 'lol'; print(World.ClassName);
+Block2 = psuedoLife:newObject('Block', Space);
+
+    Block2.Name = 'Lol2';
+    Block2.Position = Vector.new(500, 1);
+    Block2.Velocity = Vector.new(-10, 0)
+    Block2.Parent = World;
+
 function love.load(args) --although this is called exactly at the beginning of the game, the rest of the game code outside runs first.
     table.foreach(args, print);
+    loveWorld = psuedoPhysics:setWorld()
 end;
 
 function love.update(dt) --seems to be a loop, this is equivalent to runtime except it's more of a 2d runtime env rather than a 3d runtime env
-   Block.Position.x = Block.Position.x + .01;
+   --Block.Position.y = Block.Position.y+ 1;
+   psuedoPhysics:update()
     --[[Block2.Position.y = Block2.Position.y + 1;
     Block3.Position.x = Block3.Position.x + 1;
     Block3.Position.y = Block3.Position.y + 1;]]
