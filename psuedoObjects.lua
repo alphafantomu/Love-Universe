@@ -135,14 +135,6 @@ API:newType('Vector', {
         end;
         edit_mode = 1;
     };
-    {
-        index = 'Check';
-        function_dependent = false;
-        is_callback = true;
-        default = function(self)
-        end;
-        edit_mode = 3;
-    };
 }, {
     --[[__add = function(vector1, vector2)
 
