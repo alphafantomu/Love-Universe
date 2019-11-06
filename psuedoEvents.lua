@@ -24,7 +24,7 @@
     1 - Love Engine event management
 ]]
 local API = {
-    Mode = 0;
+    Mode = 1;
 };
 local triggers = {};
 local connectionsCache = {};
@@ -42,6 +42,13 @@ end;
 
 API.getEvent = function(self, event)
     return triggers[event];
+end;
+
+API.loveHandlerExists = function(self, handlerName)
+    local ran, result = pcall(function()
+        return love.handlers[handlerName] ~= nil;
+    end);
+    return ran;
 end;
 
 API.getAllListeners = function(self, event)
@@ -97,6 +104,15 @@ API.createListenerRemote = function(self, event)
     local remote = {};
     local listener = API:createListenerObject(event, remote);
     local cause;
+    if (API.Mode == 1) then
+        remote.loveId = psuedoWorkspace:stringRandom(255, true);
+        if (API:loveHandlerExists(remote.Id) == true) then
+            repeat
+                remote.loveId = psuedoWorkspace:stringRandom(255, true);
+            until
+                API:loveHandlerExists(remote.Id) == false;
+        end;
+    end;
     remote.connected = true;
     remote.getListener = function(self)
         if (self.connected == true) then
@@ -104,20 +120,41 @@ API.createListenerRemote = function(self, event)
         end;
     end;
     remote.setCause = function(self, causeFunction)
-        cause = causeFunction;
+        if (API.Mode == 1) then
+            love.handlers[remote.loveId] = causeFunction;
+        elseif (API.Mode == 0) then
+            cause = causeFunction;
+        end;  
     end;
     remote.disconnect = function(self)
         if (self.connected == true) then
             self.connected = false;
-            connectionsCache[listener] = nil;
-            triggers[event].Listeners[listener] = nil;
+            if (connectionsCache[listener] ~= nil) then
+                connectionsCache[listener] = nil;
+            end;
+            if (triggers[event].Listeners[listener] ~= nil) then
+                triggers[event].Listeners[listener] = nil;
+            end;
+            if (API.Mode == 1) then
+                love.handlers[remote.loveId] = nil;
+            end;
         end;
     end;
     remote.fire = function(self, ...)
         if (self.connected == true) then
             --we are probably supposed to add threading here
-            if (cause ~= nil) then
-                cause(...);
+            if (API.Mode == 0) then
+                if (cause ~= nil) then
+                    connectionsCache[listener] = listener;
+                    cause(...);
+                    connectionsCache[listener] = nil;
+                end;
+            elseif (API.Mode == 1) then
+                if (API:loveHandlerExists(remote.loveId) == true) then
+                    connectionsCache[listener] = listener;
+                    love.event.push(remote.loveId, ...);
+                    connectionsCache[listener] = nil;
+                end;
             end;
         end;
     end;
@@ -137,19 +174,9 @@ API.createListenerObject = function(self, event, remote)
         if (type(index):lower() == 'string' and remote.connected == true) then
             if (index:lower() == 'disconnect') then
                 return function(self)
-                    print('disconnect', self);
                     remote.connected = false;
                     remote:disconnect();
                 end;
-            --[[elseif (index:lower() == 'wait') then
-                return function()
-                    warn('This function is incomplete for now')
-                end;
-                
-                    psuedoThreading:waitUntilTrue(function()
-                        return signalNetwork[event] ~= nil;
-                    end);
-                ]]
             end;
         end;
     end;
