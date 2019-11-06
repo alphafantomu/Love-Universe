@@ -17,8 +17,15 @@
     }
 
     the difference between love.timer.sleep() and wait() is that one freezes the game, the other doesn't.
+
+    We also can switch between Love Universe events and Love Engine events
+    Mode:
+    0 - Love Universe event management
+    1 - Love Engine event management
 ]]
-local API = {};
+local API = {
+    Mode = 0;
+};
 local triggers = {};
 local connectionsCache = {};
 local signalNetwork = {};
@@ -30,16 +37,6 @@ end;
 API.destroyEvent = function(self, event)
     if (API:eventExists(event) == true) then
         triggers[event] = nil;
-    end;
-end;
-
-API.registerEvent = function(self, event)
-    if (API:eventExists(event) == false) then
-        triggers[event] = {Listeners = {}};
-        triggers[event].Remote = API:createEventRemote(event, triggers[event]);
-        return triggers[event].Remote;
-    else
-        return triggers[event].Remote;
     end;
 end;
 
@@ -57,6 +54,16 @@ API.registerListener = function(self, event)
     local eventTrigger = triggers[event];
     eventTrigger.Listeners[remote] = remote;
     return remote;
+end;
+
+API.registerEvent = function(self, event)
+    if (API:eventExists(event) == false) then
+        triggers[event] = {Listeners = {}};
+        triggers[event].Remote = API:createEventRemote(event, triggers[event]);
+        return triggers[event].Remote;
+    else
+        return triggers[event].Remote;
+    end;
 end;
 
 API.createEventRemote = function(self, event)
@@ -160,11 +167,23 @@ local eventProperties = {
         default = function(self, void)
             --self is the event
             if (type(self):lower() == 'event') then
-                local remote = API:registerEvent(self);
-                local listenerFramework = remote:registerListener();
-                listenerFramework:setCause(void);
-                local listener = listenerFramework:getListener();
-                return listener;
+                if (API.Mode == 0) then --love universe
+                    if (type(self):lower() == 'event') then
+                        local remote = API:registerEvent(self);
+                        local listenerFramework = remote:registerListener();
+                        listenerFramework:setCause(void);
+                        local listener = listenerFramework:getListener();
+                        return listener;
+                    end;
+                elseif (API.Mode == 1) then --love engine
+                    if (type(self):lower() == 'event') then
+                        local remote = API:registerEvent(self);
+                        local listenerFramework = remote:registerListener();
+                        listenerFramework:setCause(void);
+                        local listener = listenerFramework:getListener();
+                        return listener;
+                    end;
+                end;
             end;
         end;
         edit_mode = 1;

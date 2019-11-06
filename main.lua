@@ -35,11 +35,12 @@ local Http = CurrentWorld:GetUtility('Http');
 local Space = CurrentWorld:GetUtility('Space');
 
 function love.load(args) --although this is called exactly at the beginning of the game, the rest of the game code outside runs first.
-	table.foreach(args, print);
+    table.foreach(args, print);
 end;
 --dt is the change in time, basically.
 function love.update(dt) --seems to be a loop, this is equivalent to runtime except it's more of a 2d runtime env rather than a 3d runtime env
-	print(dt);
+   -- print(dt);
+   
    -- Block.Position.x = Block.Position.x + .01;
 	--[[Block2.Position.y = Block2.Position.y + 1;
 	Block3.Position.x = Block3.Position.x + 1;
