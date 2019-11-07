@@ -462,7 +462,19 @@ World = setmetatable({
         return nil;
     end;
     __metatable = 'Locked';
-})
+});
+
+Instance = setmetatable({
+    new = function(className, parent)
+        return API:newObject(className, parent);
+    end;
+}, {
+    __newindex = function(self, index, value)
+        fatal('Attempt to add a new index ('..tostring(index)..') to Vector');
+        return nil;
+    end;
+    __metatable = 'Locked';
+});
 --[[
     Edit modes:
     0 - No edit

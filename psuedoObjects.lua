@@ -187,7 +187,7 @@ Vector = setmetatable({
         return nil;
     end;
     __metatable = 'Locked';
-})
+});
 Color = setmetatable({
     new = function(r, g, b)
         local obj = API:createType('Color');
@@ -202,7 +202,7 @@ Color = setmetatable({
         return nil;
     end;
     __metatable = 'Locked';
-})
+});
 psuedoObjects = API;
 type = function(var)
     return API:modType(var);

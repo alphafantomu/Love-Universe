@@ -1,4 +1,5 @@
 
+--this is going to be super complicated, wont be done in awhile
 local API = {};
 
 API.waitms = function(self, ms)
