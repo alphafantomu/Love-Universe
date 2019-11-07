@@ -668,6 +668,23 @@ API:newClass('Block', {
         EditMode = 1;
     };
     {
+        Name = 'Velocity';
+        Generator = true;
+        Default = function() 
+            local vector = psuedoObjects:createType('Vector');
+            vector.x = 0;
+            vector.y = 0;
+            return vector;
+        end;
+        EditMode = 3;
+    };
+    {
+        Name = 'Collidable';
+        Generator = true;
+        Default = true;
+        EditMode = 3;
+     };
+    {
         Name = 'Rotation';
         Generator = false;
         IsCallback = false;
