@@ -22,32 +22,25 @@ end;
 local spacialPlane = newproxy(true);
 local meta = getmetatable(spacialPlane);
 meta.__index = function(self, index)
-    if (type(index):lower() == 'table') then
-        local exists = spaceExists(spacedOccupied, index);
-        if (exists == true) then
-            return 1;
-        elseif (exists == false) then
-            return 0;
-        end;
+    local exists = spaceExists(spacedOccupied, index);
+    if (exists == true) then
+        return 1;
     end;
+    return 0;
 end;
 --space[{5, 2}] = true;
 
 meta.__newindex = function(self, index, value)
     if (type(index):lower() == 'table' and type(value):lower() == 'boolean') then
         local exists = spaceExists(spacedOccupied, index);
-        if (value == true) then --we want this value to exist
-            if (exists == false) then --it doesnt exist yet
-                spacedOccupied[index[1]..':'..index[2]] = index;
-            elseif (exists == true) then --it exists?? That means there must be another object that's colliding.
-                print'collision!!!';
-            end;
+        if (value == true and exists == false) then --we want this value to exist
+            spacedOccupied[index[1]..':'..index[2]] = index;
+        elseif (value == true and exists == true) then
+            --collision occurs here
+            print'hey! collision is occuring!';
         elseif (value == false) then --we want this value to not exist
-            if (exists == true) then --this already exists, we want to remove
-                local coords = getSpaceCoordinates(spacedOccupied, index);
-                if (coords ~= nil) then
-                    spacedOccupied[index[1]..':'..index[2]] = nil;
-                end;
+            if (exists == true and spaceExists(spacedOccupied, index) == true) then --this already exists, we want to remove
+                spacedOccupied[index[1]..':'..index[2]] = nil;
             end;
         end;
     end;
@@ -68,22 +61,9 @@ analyzeBlock = function(block)
     local eposr = Size.y/elementalr;
     for c = 0, elementalc do
         for r = 0, elementalr do
-            local ctox = Position.x + (eposc * c);
-            local rtoy = Position.y + (eposr * r);
-            local coords = {ctox, rtoy};
-            spacialPlane[coords] = true;
+            spacialPlane[{Position.x + (eposc * c), Position.y + (eposr * r)}] = true;
         end;
     end;
-end;
-
-love.handlers.blockMoved = function(block)
-    --we need to actively change elements that the block occupies in the plane.
-    --convert a square into a whole chunk of elements
-    --find the x and y coordinates of the elements
-    --input into the matrix space
-
-    --we'll just redfine our theorems in local space, so position = 0, 0
-    analyzeBlock(block);
 end;
 
 API.spacialPlane = spacialPlane;

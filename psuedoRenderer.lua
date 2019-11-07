@@ -5,9 +5,10 @@ local psuedoObjects = psuedoObjects;
 text = '';
 
 function love.draw()
-    --[[local height, width = love.graphics.getDimensions();
-    for y = 1, height, 15 do
-        for x = 1, width, 15 do
+    local width, height = love.graphics.getDimensions();
+    print(width, height);
+    for y = 1, height, 20 do
+        for x = 1, width, 20 do
             local coords = getSpaceCoordinates(spacedOccupied, {x, y});
             if (coords == nil) then
                 love.graphics.print('0', x, y);
@@ -15,7 +16,7 @@ function love.draw()
                 love.graphics.print('1', x, y);
             end;
         end;
-    end;]]
+    end;
     --love.graphics.print(text, 0, 0);
     spacedOccupied = {};
     collectgarbage();
