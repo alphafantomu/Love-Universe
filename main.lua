@@ -36,8 +36,6 @@ local CurrentWorld = psuedoLife.CurrentWorld;
 local Http = CurrentWorld:GetUtility('Http');
 local Space = CurrentWorld:GetUtility('Space');
 
-thread = nil;
-
 BlockA = Instance.new('Block', Space);
 BlockB = Instance.new('Block', Space);
 
@@ -52,7 +50,7 @@ end;
 
 function love.load(args) --although this is called exactly at the beginning of the game, the rest of the game code outside runs first.
     --table.foreach(args, print);
-    love.window.setMode(800, 600, {resizable=true, vsync=false, minwidth=400, minheight=300})
+    --love.window.setMode(800, 600, {resizable=true, vsync=false, minwidth=400, minheight=300})
 end;
 --dt is the change in time, basically.
 function love.update(dt) --seems to be a loop, this is equivalent to runtime except it's more of a 2d runtime env rather than a 3d runtime env
