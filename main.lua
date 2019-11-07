@@ -37,12 +37,15 @@ local Space = CurrentWorld:GetUtility('Space');
 local Block = psuedoLife:newObject('Block', Space);
     Block.Name = 'slow';
 	Block.Parent = Space;
-	--Block.Velocity = Vector.new(1,1)
+	--Block.Velocity = Vector.new(25,50)
+	--Block.Position = Vector.new(0, 0)
+
 
 local FastBlock = psuedoLife:newObject('Block', Space);
-    Block.Name = 'fast';
-	Block.Parent = Space;
-	--Block.Velocity = Vector.new(5,5)
+	FastBlock.Name = 'fast';
+	FastBlock.Parent = Space;
+	FastBlock.Position = Vector.new(50, 50)
+	
 
 function love.load(args) --although this is called exactly at the beginning of the game, the rest of the game code outside runs first.
     --table.foreach(args, print);
