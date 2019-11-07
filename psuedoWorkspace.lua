@@ -670,6 +670,7 @@ API:newClass('Block', {
     {
         Name = 'Velocity';
         Generator = true;
+        IsCallback = false;
         Default = function() 
             local vector = psuedoObjects:createType('Vector');
             vector.x = 0;
@@ -681,6 +682,7 @@ API:newClass('Block', {
     {
         Name = 'Collidable';
         Generator = true;
+        IsCallback = false;
         Default = true;
         EditMode = 3;
      };
