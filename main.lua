@@ -60,5 +60,5 @@ function love.load(args) --although this is called exactly at the beginning of t
 end;
 --dt is the change in time, basically.
 function love.update(dt) --seems to be a loop, this is equivalent to runtime except it's more of a 2d runtime env rather than a 3d runtime env
-    --print(love.timer.getFPS());
+    print(love.timer.getFPS());
 end;

@@ -40,7 +40,7 @@ meta.__newindex = function(self, index, value)
             if (exists == false) then --it doesnt exist yet
                 spacedOccupied[index[1]..':'..index[2]] = index;
             elseif (exists == true) then --it exists?? That means there must be another object that's colliding.
-                
+                print'collision!!!';
             end;
         elseif (value == false) then --we want this value to not exist
             if (exists == true) then --this already exists, we want to remove
@@ -52,6 +52,7 @@ meta.__newindex = function(self, index, value)
         end;
     end;
 end;
+
 meta.__metatable = 'Locked';
 meta.__tostring = function()
     return 'Spacial Plane';
@@ -59,16 +60,12 @@ end;
 
 --spacialPlane has to reset every frame
 analyzeBlock = function(block)
-    local dx = 1;
-    local dy = 1;
     local Size = block.Size;
     local Position = block.Position;
-    local Ac = Size.x;
-    local Ar = Size.y;
-    local elementalc = Size.x/dx;
-    local elementalr = Size.y/dy;
-    local eposc = Ac/elementalc;
-    local eposr = Ar/elementalr;
+    local elementalc = Size.x/API.dx;
+    local elementalr = Size.y/API.dy;
+    local eposc = Size.x/elementalc;
+    local eposr = Size.y/elementalr;
     for c = 0, elementalc do
         for r = 0, elementalr do
             local ctox = Position.x + (eposc * c);
