@@ -29,7 +29,7 @@ local Vector = Vector3.new(5, 2, 3);
 Love Universe:
 ```lua
 local psuedoObjects = require('psuedoObjects');
-local Vector = Vector2.new(5, 2); --there's no z axis on a 2 dimensional vector.
+local Vector = Vector.new(5, 2); --there's no z axis on a 2 dimensional vector.
 local Vector2 = psuedoObjects:createType('Vector');
 Vector2.x = 5;
 Vector2.y = 2;

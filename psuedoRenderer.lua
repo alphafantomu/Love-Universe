@@ -7,13 +7,13 @@ text = '';
 function love.draw()
     --[[
     local width, height = love.graphics.getDimensions();
-    print(width, height);
+    --print(width, height);
     for y = 1, height, 20 do
         for x = 1, width, 20 do
-            local coords = getSpaceCoordinates(spacedOccupied, {x, y});
-            if (coords == nil) then
+            local coords = spaceExists(spacedOccupied, {x, y});
+            if (coords == false) then
                 love.graphics.print('0', x, y);
-            elseif (coords ~= nil) then
+            elseif (coords == true) then
                 love.graphics.print('1', x, y);
             end;
         end;

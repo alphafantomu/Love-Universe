@@ -11,19 +11,14 @@ local API = {
 
 spacedOccupied = {};
 
-getSpaceCoordinates = function(arr, val)
-    return arr[val[1]..':'..val[2]];
-end;
-
-local spaceExists = function(arr, val)
-    return getSpaceCoordinates(arr, val) ~= nil;
+spaceExists = function(arr, val)
+    return arr[val[1]..':'..val[2]] ~= nil;
 end;
 
 local spacialPlane = newproxy(true);
 local meta = getmetatable(spacialPlane);
 meta.__index = function(self, index)
-    local exists = spaceExists(spacedOccupied, index);
-    if (exists == true) then
+    if (spaceExists(arr, val) == true) then
         return 1;
     end;
     return 0;
@@ -39,7 +34,7 @@ meta.__newindex = function(self, index, value)
             --collision occurs here
             print'hey! collision is occuring!';
         elseif (value == false) then --we want this value to not exist
-            if (exists == true and spaceExists(spacedOccupied, index) == true) then --this already exists, we want to remove
+            if (exists == true) then --this already exists, we want to remove
                 spacedOccupied[index[1]..':'..index[2]] = nil;
             end;
         end;
