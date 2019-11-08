@@ -17,7 +17,6 @@ function love.draw()
                 love.graphics.print('1', x, y);
             end;
         end;
-    end;
     end;]]
     --love.graphics.print(text, 0, 0);
     spacedOccupied = {};
