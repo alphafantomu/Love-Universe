@@ -5,6 +5,7 @@ local psuedoObjects = psuedoObjects;
 text = '';
 
 function love.draw()
+    --[[
     local width, height = love.graphics.getDimensions();
     print(width, height);
     for y = 1, height, 20 do
@@ -17,6 +18,7 @@ function love.draw()
             end;
         end;
     end;
+    end;]]
     --love.graphics.print(text, 0, 0);
     spacedOccupied = {};
     collectgarbage();
