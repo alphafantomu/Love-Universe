@@ -24,41 +24,59 @@ function checkCollisions()
     end
 end
 
-function inBounds(bound1, bound2)
+function inBounds(bound1, bound2, answer)
     local b1a = bound1[1]
     local b1b = bound1[2]
 
     local b2a = bound2[1]
     local b2b = bound2[2]
-    if (b1a >= b2a and b1a <= b2b) and b1b >= b2a then
-        return true
-    end
 
-    if (b1b >= b2a and b1b <= b2b)  and b1a <= b2b then
-        return true
-    end
+    if answer == "x" then -- ONLY FOR WHEN YOU ARE COMPARING TWO X= LINES
+        --[b2a]---[b1a]---[b2b]
+        --b1b can be less than or greater then b2b, it doesnt matter
+        if b1a >= b2a and b1a <= b2b then
+            return true
+        end
 
-    if (b2a >= b1a and b2a <= b1b) and b2b >= b1a then
-        return true
-    end
-
-    if (b2b >= b1a and b2b <= b1b)  and b2a <= b1b then
-        return true
-    end
+        --[b2a]---[b1b]---[b2b]
+        --b1a can be less than or greater than b2a, it doesnt matter
+        if b1b >= b2a and b1b <= b2b then
+            return true
+        end
     
+        --[b1a]---[b2a]---[b1b]
+        ---b2b can be less than or greater than b1b, it doesnt matter
+        if b2a >= b1a and b2a <= b1b then
+            return true
+        end
+
+        --[b1a]---[b2b]---[b1b]
+        --b2a can be less than or greater than b1a, it doesnt matter
+        if b2b >= b1a and b2b <= b1b then
+            return true
+        end
+    elseif answer then
+        --[b1a]---[answer]---[b1b]
+        if (answer >= b1a and answer <= b1b) then
+            --[b2a]---[answer]---[b2b]
+            if (answer >= b2a and answer <= b2b) 
+                return true
+             end
+        end
+    end
 
     return false
-
 end
+
 
 function solveEquation(line1, line2)
     local result = false
     if line1[1] == "x" then
         if line2[1] == "x" then
-            result = inBounds(line1[3], line2[3])
+            result = inBounds(line1[3], line2[3], "x")
         elseif line2[1] == "y" then
             local y = line1[2] * line2[2] + line2[3]
-            result = inBounds({y,y}, line2[4])
+            result = inBounds(line1[3], line2[4], y)
         end
     elseif line1[1] == "y" then
         if line2[1] == "x" then
