@@ -18,7 +18,24 @@ function checkCollisions()
     for selectedLine, name in pairs(currentLines) do
         for comparingLine, name2 in pairs(currentLines) do
             if name ~= name2 then
-                print(solveEquation(selectedLine, comparingLine))
+                local result = solveEquation(selectedLine, comparingLine)
+                sLType = selectedLine[1]
+                cLType = comparingLine[1]
+
+                if result then
+                    print("______________________________")
+                    if sLType == "y" then
+                        print(selectedLine[1] .." = ".. selectedLine[2].."x + "..selectedLine[3].. ", for " .. selectedLine[4][1] .. "<".. "x".."<"..selectedLine[4][2])
+                    else 
+                        print(selectedLine[1] .." = ".. selectedLine[2] .. ", for " .. selectedLine[3][1] .. "<".. "y".."<"..selectedLine[3][2])
+                    end
+                    if cLType == "y" then
+                        print(comparingLine[1] .." = ".. comparingLine[2].."x + "..comparingLine[3].. ", for " .. comparingLine[4][1] .. "<".. "x".."<"..comparingLine[4][2])
+                    else 
+                        print(comparingLine[1] .." = ".. comparingLine[2] .. ", for " .. comparingLine[3][1] .. "<".. "y".."<"..comparingLine[3][2])
+                    end
+                    print("______________________________")
+                end
             end
         end
     end
@@ -28,40 +45,48 @@ function inBounds(bound1, bound2, answer)
     local b1a = bound1[1]
     local b1b = bound1[2]
 
+    if not bound2 then
+        if (answer >= b1a and answer <= b1b) then
+            return true
+        else
+            return false
+        end
+    end
+
     local b2a = bound2[1]
     local b2b = bound2[2]
 
-    if answer == "x" then -- ONLY FOR WHEN YOU ARE COMPARING TWO X= LINES
-        --[b2a]---[b1a]---[b2b]
+    if answer == "l" then -- ONLY FOR WHEN YOU ARE COMPARING TWO X= LINES
+        --[[b2a]]---[b1a]---[[b2b]]
         --b1b can be less than or greater then b2b, it doesnt matter
         if b1a >= b2a and b1a <= b2b then
             return true
         end
 
-        --[b2a]---[b1b]---[b2b]
+        --[[b2a]]---[b1b]---[[b2b]]
         --b1a can be less than or greater than b2a, it doesnt matter
         if b1b >= b2a and b1b <= b2b then
             return true
         end
     
-        --[b1a]---[b2a]---[b1b]
+        --[[b1a]]---[b2a]---[[b1b]]
         ---b2b can be less than or greater than b1b, it doesnt matter
         if b2a >= b1a and b2a <= b1b then
             return true
         end
 
-        --[b1a]---[b2b]---[b1b]
+        --[[b1a]]---[b2b]---[[b1b]]
         --b2a can be less than or greater than b1a, it doesnt matter
         if b2b >= b1a and b2b <= b1b then
             return true
         end
     elseif answer then
-        --[b1a]---[answer]---[b1b]
+        --[[b1a]]---[answer]---[[b1b]]
         if (answer >= b1a and answer <= b1b) then
-            --[b2a]---[answer]---[b2b]
-            if (answer >= b2a and answer <= b2b) 
+            --[[b2a]]---[answer]---[[b2b]]
+            if (answer >= b2a and answer <= b2b) then
                 return true
-             end
+            end
         end
     end
 
@@ -70,24 +95,37 @@ end
 
 
 function solveEquation(line1, line2)
+
+    local line1Type = line1[1]
+    local line2Type = line2[1]
+
     local result = false
-    if line1[1] == "x" then
-        if line2[1] == "x" then
-            result = inBounds(line1[3], line2[3], "x")
-        elseif line2[1] == "y" then
-            local y = line1[2] * line2[2] + line2[3]
-            result = inBounds(line1[3], line2[4], y)
+    if line1Type== "x" then
+        if line2Type == "x" then
+            if line1[2] == line2[2] then
+                result = inBounds(line1[3], line2[3], "l")
+            end
+        elseif line2Type == "y" then
+            if inBounds(line2[4], nil, line1[2]) then
+                local y = line1[2] * line2[2] + line2[3]
+                result = inBounds(line1[3], nil, y)
+            end
         end
-    elseif line1[1] == "y" then
-        if line2[1] == "x" then
-            local y = line2[2] * line1[2] + line1[3]
-            result =  inBounds({y,y}, line1[4])
-        elseif line2[1] == "y" then
+    elseif line1Type == "y" then
+        if line2Type == "x" then
+            if inBounds(line1[4], nil, line2[2]) then
+                local y = line2[2] * line1[2] + line1[3]
+                result = inBounds(line2[3], nil, y)
+            end
+        elseif line2Type == "y" then
             local x = (line2[3] - line1[3]) / (line1[2] - line2[2])
-            if line1[4][2] - line1[4][1] > line2[4][2] - line2[4][1] then
-                result =  inBounds({X,x}, line2[4])
-            else
-                result =  inBounds({x,x}, line1[4])
+            if math.abs(line1[2]) == 0 and math.abs(line2[2]) == 0 then
+                if line1[3] == line2[3] then
+                    result = inBounds(line1[4], line2[4], "l")
+                end
+            end
+            if x then
+                result = inBounds(line1[4], line2[4], x)
             end
         end
     end
@@ -145,7 +183,7 @@ function pointsToLines(points, name)
         return (p1.y - slope * p1.x)
     end
 
-    function order(a, b) -- MAKE A CASE FOR WHEN A = B
+    function order(a, b)
         if a > b then
             return {b, a}
         else
@@ -153,7 +191,6 @@ function pointsToLines(points, name)
         end
     end
     
-   -- print(#points)
     for i = 1, #points do
         if i+1 <= #points then
             i2 = i+1
@@ -172,7 +209,7 @@ function pointsToLines(points, name)
             var = "y"
             bounds = order(points[i].x, points[i2].x)
             line = {var, slope, yIntercept, bounds}
-           -- print(i..": ".. line[1] .." = ".. line[2].."x + "..line[3].. ", for " .. line[4][1] .. "<".. "y".."<"..line[4][2])
+           -- print(i..": ".. line[1] .." = ".. line[2].."x + "..line[3].. ", for " .. line[4][1] .. "<".. "x".."<"..line[4][2])
         end
 
         currentLines[line] = name

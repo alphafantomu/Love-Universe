@@ -5,8 +5,9 @@ local psuedoObjects = psuedoObjects;
 text = '';
 
 function love.draw()
+    --[[
     local width, height = love.graphics.getDimensions();
-    print(width, height);
+   -- print(width, height);
     for y = 1, height, 20 do
         for x = 1, width, 20 do
             local coords = getSpaceCoordinates(spacedOccupied, {x, y});
@@ -17,6 +18,7 @@ function love.draw()
             end;
         end;
     end;
+    --]]
     --love.graphics.print(text, 0, 0);
     spacedOccupied = {};
     collectgarbage();
@@ -28,6 +30,8 @@ function love.draw()
         love.graphics.print('left:'..tostring(pos2.x - pos1.x), 200, 0);
         love.graphics.print('right:'..tostring((pos2.x + size2.x) - (pos1.x + size1.x)), 300, 0);
     end;]]
+
+    --[
     local CurrentStack = psuedoWorkspace:getPhysicalObjects();
     for i, v in next, CurrentStack do
         local actualObject = v;
@@ -37,7 +41,7 @@ function love.draw()
             love.graphics.setColor(actualObject.Color.r, actualObject.Color.g, actualObject.Color.b, 255);
             love.graphics.rectangle(actualObject.Type, actualObject.Position.x, actualObject.Position.y, actualObject.Size.x, actualObject.Size.y);
             love.graphics.pop();
-            analyzeBlock(actualObject);
+            --analyzeBlock(actualObject);
         end;
     end;
 end;

@@ -50,14 +50,15 @@ BlockB = Instance.new('Block', Space);
 
 
 
---[[
+
+
 function love.mousemoved(x, y, dx, dy, istouch)
     BlockB.Position.x = x;
 	BlockB.Position.y = y;
     --print(x, y);
     --analyzeBlock(BlockB);
 end;
---]]
+
 function love.load(args) --although this is called exactly at the beginning of the game, the rest of the game code outside runs first.
     --table.foreach(args, print);
     love.window.setMode(800, 600, {resizable=true, vsync=false, minwidth=400, minheight=300})
