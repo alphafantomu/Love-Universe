@@ -42,18 +42,19 @@ function love.draw()
             if actualObject.ClassName == "Block" then
                 love.graphics.rectangle(actualObject.Type, actualObject.Position.x, actualObject.Position.y, actualObject.Size.x, actualObject.Size.y);
             elseif actualObject.ClassName == "Polygon" then
-                local vListUnpacked = {}
+                local vList = {}
+                local scale = actualObject.Scale
 
                 local x = actualObject.Position.x
                 local y = actualObject.Position.y
 
                 for index, vPair in ipairs(actualObject.Verticies) do
-                    table.insert(vListUnpacked, vPair[1] + x)
-                    table.insert(vListUnpacked, vPair[2] + y)
+                    table.insert(vList, (vPair[1] + x) * scale)
+                    table.insert(vList, (vPair[2] + y) * scale)
                     --print(index .. ": " .. vPair[1] .. ", " .. vPair[2])
                 end
                
-                love.graphics.polygon(actualObject.Type, x, y, unpack(vListUnpacked))
+                love.graphics.polygon(actualObject.Type, x, y, unpack(vList))
             end
             love.graphics.pop();
             --analyzeBlock(actualObject);

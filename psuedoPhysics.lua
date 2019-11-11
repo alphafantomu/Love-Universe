@@ -5,7 +5,7 @@ API.update = function(self, dt)
     currentLines = {}
     for i, v in next, CurrentStack do
         local actualObject = v.__object;
-        if (actualObject.ClassName == 'Block') then
+        if (actualObject.ClassName == 'Block') or actualObject.ClassName == "Polygon" then
             velocityUpdate(actualObject, dt)
             defineLines(actualObject)
             checkCollisions()
@@ -15,9 +15,9 @@ API.update = function(self, dt)
 end
 
 function checkCollisions()
-    for selectedLine, name in pairs(currentLines) do
-        for comparingLine, name2 in pairs(currentLines) do
-            if name ~= name2 then
+    for selectedLine, sLName in pairs(currentLines) do
+        for comparingLine, cLName in pairs(currentLines) do
+            if sLName ~= cLName then
                 local result = solveEquation(selectedLine, comparingLine)
                 sLType = selectedLine[1]
                 cLType = comparingLine[1]
@@ -25,14 +25,14 @@ function checkCollisions()
                 if result then
                     print("______________________________")
                     if sLType == "y" then
-                        print(selectedLine[1] .." = ".. selectedLine[2].."x + "..selectedLine[3].. ", for " .. selectedLine[4][1] .. "<".. "x".."<"..selectedLine[4][2])
+                        print(selectedLine[1] .." = ".. selectedLine[2].."x + "..selectedLine[3].. ", for " .. selectedLine[4][1] .. "<".. "x".."<"..selectedLine[4][2], sLName)
                     else 
-                        print(selectedLine[1] .." = ".. selectedLine[2] .. ", for " .. selectedLine[3][1] .. "<".. "y".."<"..selectedLine[3][2])
+                        print(selectedLine[1] .." = ".. selectedLine[2] .. ", for " .. selectedLine[3][1] .. "<".. "y".."<"..selectedLine[3][2], sLName)
                     end
                     if cLType == "y" then
-                        print(comparingLine[1] .." = ".. comparingLine[2].."x + "..comparingLine[3].. ", for " .. comparingLine[4][1] .. "<".. "x".."<"..comparingLine[4][2])
+                        print(comparingLine[1] .." = ".. comparingLine[2].."x + "..comparingLine[3].. ", for " .. comparingLine[4][1] .. "<".. "x".."<"..comparingLine[4][2], cLName)
                     else 
-                        print(comparingLine[1] .." = ".. comparingLine[2] .. ", for " .. comparingLine[3][1] .. "<".. "y".."<"..comparingLine[3][2])
+                        print(comparingLine[1] .." = ".. comparingLine[2] .. ", for " .. comparingLine[3][1] .. "<".. "y".."<"..comparingLine[3][2], cLName)
                     end
                     print("______________________________")
                 end
@@ -146,21 +146,35 @@ function assertClass(object, desiredClass)
     assert(object.ClassName == "Block", object.ClassName .. "class cannot use this function")
 end
 
-function defineLines(object)
+function getPoints(object)
     local type = object.ClassName
-    --when defining polygons, give them a table that includes location of all their points relative to the main point (top left corner)
-    --in future, use ^^^ to get list of p1, p2, p3, ...
+    local points
     if type == "Block" then
-        local points = {
+        points = {
         object.Position,
         Vector.new(object.Position.x + object.Size.x, object.Position.y),
         Vector.new(object.Position.x + object.Size.x, object.Position.y + object.Size.y),
         Vector.new(object.Position.x, object.Position.y + object.Size.y),
         }
-        --print(1, #points)
-        pointsToLines(points, object.Name)
 
+    elseif type == "Polygon" then
+        points = {object.Position}
+        local originX = object.Position.x
+        local originY = object.Position.y
+
+        local v = object.Verticies
+        for i = 1, #v do
+           points[i + 1] = Vector.new(v[i][1] + originX, v[i][2] + originY) 
+        end
     end
+    return points
+end
+
+function defineLines(object)
+    local points = getPoints(object)
+    if not points then print(object.Name, object.ClassName) end
+    --replace object.name with objectid (still need implement)
+    pointsToLines(points, object.Name)
 end
 
 function vectorToString(vector)

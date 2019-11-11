@@ -10,7 +10,7 @@ local Stack = {}; --Psuedo Environment Memory
 local NullStack = {}; --this is actually equivalent to the children_stack standard objects have
 local Singularities = {}; --container storage for services, where only one service can exist
 local Worlds = {};
-local Blocks = {};
+--local Blocks = {};
 local Polygons = {};
 --local Runtime = {};
 --[[
@@ -153,10 +153,12 @@ API.newObject = function(self, className, parent)
             Utilities = {};
         };
     end;
+    --[[
     if (className == 'Block') then
         table.insert(Blocks, obj);
     end;
-    if (className == 'Polygon') then
+    --]]
+    if (className == 'Polygon' or className == "Block") then
         table.insert(Polygons, obj);
     end;
     if (classdata.Limited == true) then
@@ -450,15 +452,8 @@ API.getStackObjectByHash = function(self, hash)
 end;
 
 API.getPhysicalObjects = function(self)
-    return mergeTable(Blocks, Polygons); -- add polygons
+    return Polygons; -- add polygons
 end;
-
-function mergeTable(tableA, tableB)
-    for i = 1, #tableB do
-        tableA[#tableA + 1] = tableB[i]
-    end
-    return tableB
-end
 
 API.getStack = function(self)
     return Stack;

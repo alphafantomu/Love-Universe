@@ -40,28 +40,27 @@ local Space = CurrentWorld:GetUtility('Space');
 thread = nil;
 
 BlockA = Instance.new('Block', Space);
-	BlockA.Name = "notB"
+	BlockA.Name = "blocka"
 	BlockA.Size = Vector.new(20, 20);
 	BlockA.Position = Vector.new(500, 300);
 
 BlockB = Instance.new('Block', Space);
-	BlockB.Name = "notA"
+	BlockB.Name = "blockb"
 	BlockB.Position = Vector.new(10, 10)
 
-PolygonA = Instance.new("Polygon", Space)
-	PolygonA.Name = "Triangle"
-	PolygonA.Position = Vector.new(100, 100)
-	PolygonA.Verticies = {{50, 0}, {50, 50}, {0, 50}}
 
---[[
+PolygonA = Instance.new("Polygon", Space)
+	PolygonA.Name = "polygona"
+	PolygonA.Position = Vector.new(500, 200)
+	PolygonA.Verticies = {{50, 0}, {50, 50}, {0, 50}, {30, 40}}
+
 function love.mousemoved(x, y, dx, dy, istouch)
-    BlockB.Position.x = x;
-	BlockB.Position.y = y;
+    BlockA.Position.x = x;
+	BlockA.Position.y = y;
     --print(x, y);
     --analyzeBlock(BlockB);
 end;
 
---]]
 function love.load(args) --although this is called exactly at the beginning of the game, the rest of the game code outside runs first.
     --table.foreach(args, print);
     love.window.setMode(800, 600, {resizable=true, vsync=false, minwidth=400, minheight=300})
