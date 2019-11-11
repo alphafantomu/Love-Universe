@@ -11,6 +11,7 @@ local NullStack = {}; --this is actually equivalent to the children_stack standa
 local Singularities = {}; --container storage for services, where only one service can exist
 local Worlds = {};
 local Blocks = {};
+local Polygons = {};
 --local Runtime = {};
 --[[
     Worlds[worldName] = {
@@ -154,6 +155,9 @@ API.newObject = function(self, className, parent)
     end;
     if (className == 'Block') then
         table.insert(Blocks, obj);
+    end;
+    if (className == 'Polygon') then
+        table.insert(Polygons, obj);
     end;
     if (classdata.Limited == true) then
         if (parent ~= nil) then
@@ -446,8 +450,15 @@ API.getStackObjectByHash = function(self, hash)
 end;
 
 API.getPhysicalObjects = function(self)
-    return Blocks;
+    return mergeTable(Blocks, Polygons); -- add polygons
 end;
+
+function mergeTable(tableA, tableB)
+    for i = 1, #tableB do
+        tableA[#tableA + 1] = tableB[i]
+    end
+    return tableB
+end
 
 API.getStack = function(self)
     return Stack;
@@ -620,6 +631,96 @@ API:newClass('Http', {
 }, true);
 
 --------------------------------------Objects-----------------------------------------
+API:newClass('Polygon', {
+    {
+        Name = 'Name';
+        Generator = false;
+        IsCallback = false;
+        Default = 'Name';
+        EditMode = 3;
+    };
+    {
+        Name = 'Color';
+        Generator = true;
+        IsCallback = false;
+        Default = function() 
+            local color = psuedoObjects:createType('Color');
+            color.r = 255;
+            color.g = 255;
+            color.b = 255;
+            return color;
+        end;
+        EditMode = 3;
+    };
+    {
+        Name = 'Scale';
+        Generator = true;
+        IsCallback = false;
+        Default = 1;
+        EditMode = 3;
+    };
+    {
+        Name = 'Position';
+        Generator = true;
+        IsCallback = false;
+        Default = function() 
+            local vector = psuedoObjects:createType('Vector');
+            vector.x = 0;
+            vector.y = 0;
+            return vector;
+        end;
+        EditMode = 3;
+    };
+    {
+        Name = 'Verticies'; --relative position to polygon position
+        Generator = true;
+        IsCallback = false;
+        Default = {{50, 0}, {25, 50}};
+        EditMode = 3;
+    };
+    {
+        Name = 'Touched';
+        Generator = true;
+        IsCallback = false;
+        Default = function() 
+            return psuedoObjects:createType('Event');
+        end;
+        EditMode = 1;
+    };
+    {
+        Name = 'Velocity';
+        Generator = true;
+        IsCallback = false;
+        Default = function() 
+            local vector = psuedoObjects:createType('Vector');
+            vector.x = 0;
+            vector.y = 0;
+            return vector;
+        end;
+        EditMode = 3;
+    };
+    {
+        Name = 'Collidable';
+        Generator = true;
+        IsCallback = false;
+        Default = true;
+        EditMode = 3;
+     };
+    {
+        Name = 'Rotation';
+        Generator = false;
+        IsCallback = false;
+        Default = 0;
+        EditMode = 3;
+    };
+    {
+        Name = 'Type';
+        Generator = false;
+        IsCallback = false;
+        Default = 'line';
+        EditMode = 3;
+    };
+}, false);
 
 API:newClass('Block', {
     {

@@ -31,6 +31,7 @@ local psuedoMatrixSpace = require('psuedoMatrixSpace');
 local psuedoRenderer = require('psuedoRenderer');
 local roblox2D = require('roblox2D');
 
+local angle = 0
 
 local CurrentWorld = psuedoLife.CurrentWorld;
 local Http = CurrentWorld:GetUtility('Http');
@@ -45,13 +46,14 @@ BlockA = Instance.new('Block', Space);
 
 BlockB = Instance.new('Block', Space);
 	BlockB.Name = "notA"
-	BlockB.Position = Vector.new(10,10)
+	BlockB.Position = Vector.new(10, 10)
 
+PolygonA = Instance.new("Polygon", Space)
+	PolygonA.Name = "Triangle"
+	PolygonA.Position = Vector.new(100, 100)
+	PolygonA.Verticies = {{50, 0}, {50, 50}, {0, 50}}
 
-
-
-
-
+--[[
 function love.mousemoved(x, y, dx, dy, istouch)
     BlockB.Position.x = x;
 	BlockB.Position.y = y;
@@ -59,11 +61,12 @@ function love.mousemoved(x, y, dx, dy, istouch)
     --analyzeBlock(BlockB);
 end;
 
+--]]
 function love.load(args) --although this is called exactly at the beginning of the game, the rest of the game code outside runs first.
     --table.foreach(args, print);
     love.window.setMode(800, 600, {resizable=true, vsync=false, minwidth=400, minheight=300})
 end;
 --dt is the change in time, basically.
 function love.update(dt) --seems to be a loop, this is equivalent to runtime except it's more of a 2d runtime env rather than a 3d runtime env
-    psuedoPhysics:update(dt)
-end;
+	psuedoPhysics:update(dt)
+end

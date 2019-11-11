@@ -39,7 +39,22 @@ function love.draw()
             love.graphics.push();
             love.graphics.rotate(actualObject.Rotation);
             love.graphics.setColor(actualObject.Color.r, actualObject.Color.g, actualObject.Color.b, 255);
-            love.graphics.rectangle(actualObject.Type, actualObject.Position.x, actualObject.Position.y, actualObject.Size.x, actualObject.Size.y);
+            if actualObject.ClassName == "Block" then
+                love.graphics.rectangle(actualObject.Type, actualObject.Position.x, actualObject.Position.y, actualObject.Size.x, actualObject.Size.y);
+            elseif actualObject.ClassName == "Polygon" then
+                local vListUnpacked = {}
+
+                local x = actualObject.Position.x
+                local y = actualObject.Position.y
+
+                for index, vPair in ipairs(actualObject.Verticies) do
+                    table.insert(vListUnpacked, vPair[1] + x)
+                    table.insert(vListUnpacked, vPair[2] + y)
+                    --print(index .. ": " .. vPair[1] .. ", " .. vPair[2])
+                end
+               
+                love.graphics.polygon(actualObject.Type, x, y, unpack(vListUnpacked))
+            end
             love.graphics.pop();
             --analyzeBlock(actualObject);
         end;
