@@ -54,6 +54,17 @@ API.NullMetatable = {
     end;
 };
 
+API.onCreation = function(self, className, obj)
+    if (className == 'World' and Worlds[obj] == nil) then
+        Worlds[obj] = {
+            Utilities = {};
+        };
+    end;
+    if (className == 'Block') then
+        table.insert(Blocks, obj);
+    end;
+end;
+
 API.stringRandom = function(self, max, includeNumbers)
 	local str = '';
 	for i = 1, max or 0 do
@@ -147,14 +158,7 @@ API.newObject = function(self, className, parent)
     local meta = getmetatable(obj);
     local classdata = Classes[className]; --get information about the class
     --Service limited to only 1 object per world
-    if (className == 'World' and Worlds[obj] == nil) then
-        Worlds[obj] = {
-            Utilities = {};
-        };
-    end;
-    if (className == 'Block') then
-        table.insert(Blocks, obj);
-    end;
+    API:onCreation(className, obj);
     if (classdata.Limited == true) then
         if (parent ~= nil) then
             local getObjectWorld = API:getFirstAncestor(parent);

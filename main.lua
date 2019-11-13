@@ -41,6 +41,9 @@ local BlockB = Instance.new('Block', Space);
 
 BlockA.Size = Vector.new(20, 20);
 BlockA.Position = Vector.new(500, 300);
+
+local V1 = Vector.new(5, 10);
+
 function love.mousemoved(x, y, dx, dy, istouch)
     BlockB.Position.x = x;
     BlockB.Position.y = y;

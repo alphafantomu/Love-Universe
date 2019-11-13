@@ -282,7 +282,7 @@ table.insert(eventProperties, {
         end;
     end)();
 });
-psuedoObjects:newType('Event', eventProperties, {})
+psuedoObjects:newType('Event', eventProperties, {});
 
 psuedoEvents = API;
 return API;
