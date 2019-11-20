@@ -1,8 +1,13 @@
 
 local psuedoWorkspace = psuedoWorkspace;
 local psuedoObjects = psuedoObjects;
+local psuedoDebug = require("psuedoDebug")
 
 text = '';
+
+function visualizeDebug()
+
+
 
 function love.draw()
     --[[
@@ -37,6 +42,9 @@ function love.draw()
         local actualObject = v;
         if (actualObject.Parent ~= nil and actualObject.Parent:IsA('Space') == true) then
             love.graphics.push();
+
+            visualizeDebug()
+
             love.graphics.rotate(actualObject.Rotation);
             love.graphics.setColor(actualObject.Color.r, actualObject.Color.g, actualObject.Color.b, 255);
             if actualObject.ClassName == "Block" then

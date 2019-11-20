@@ -1,10 +1,14 @@
 local API = {};
 local currentLines = {}
+local psuedoDebug = require("psuedoDebug")
+
+--USE VECTORS OR TABLES TO STORE POINT DATA???
 
 --debug
-local PRINT_COLLISION_LINES = false
-local PRINT_COLLISION_POINTS = true
-local VISUALISE_COLLISION_POINTS = false --broken
+--change it to use variables already in render function
+local d_printCollL = psuedoDebug.PRINT_COLLISION_LINES
+local d_printCollP = psuedoDebug.PRINT_COLLISION_POINTS
+local d_showCollP = psuedoDebug.VISUALISE_COLLISION_POINTS = false
 
 API.update = function(self, dt)
     local CurrentStack = psuedoWorkspace:getStack();
