@@ -1,6 +1,6 @@
 
 --[[
-    ok so apparently the FUCKING PROPERTIES FOR SELF-CREATED PROPERTIES ARE SHARED BETWEEN EACH OTHER LIKE DF???
+    ok so apparently the PROPERTIES FOR SELF-CREATED PROPERTIES ARE SHARED BETWEEN EACH OTHER LIKE DF???
 ]]
 local http = require('socket.http'); --Http extension for lua, provides socket usage etc
 
@@ -281,7 +281,7 @@ API.newObject = function(self, className, parent)
                                 part.Parent = nil;
                             ]]
                             --if the old parenting and new parenting checks are passed, then
-                            --shit we need to remove utilities if it's ever destroyed
+                            --we need to remove utilities if it's ever destroyed
                             if (classdata.Limited == true) then --probably means the obj is one per world, probably a utility
                                 local getCurrentWorld = API:getFirstAncestor(rawget(defaultProperties, 'Parent'));
                                 failure(getCurrentWorld == nil, 'Utility already in parent of another world');
@@ -289,7 +289,7 @@ API.newObject = function(self, className, parent)
                                 if (getCurrentWorld == nil) then --new utility doesn't exist in a world yet
                                     --then we need to check if the new parent has an ancestor that's a world
                                     local nextWorld = API:getFirstAncestor(NewParentObject.__object);
-                                    if (nextWorld ~= nil) then --if it doesn't exist then, we'll assume it's also nil, so shit
+                                    if (nextWorld ~= nil) then --if it doesn't exist then, we'll assume it's also nil, so ok
                                         if (Worlds[nextWorld] == nil) then
                                             Worlds[nextWorld] = {
                                                 Utilities = {};
@@ -306,7 +306,7 @@ API.newObject = function(self, className, parent)
                                 NewMeta:__addChildren(obj); --if it passes then the new parent will inherit the object in its children
                                 rawset(defaultProperties, 'Parent', NewParentObject.__object); --we need to set the parent property of properties to the new object
                             else
-                                OldMeta:__addChildren(obj); --for some fucking reason it failed, so uhh we have to add the obj back into the old parent just incase
+                                OldMeta:__addChildren(obj); --for some reason it failed, so uhh we have to add the obj back into the old parent just incase
                                 if (rawget(defaultProperties, 'Parent') ~= OldParentObject.__object) then
                                     rawset(defaultProperties, 'Parent', OldParentObject.__object); --we need to set the parent property of properties to the old object JUST INCASE
                                 end;
