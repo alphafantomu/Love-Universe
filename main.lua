@@ -8,7 +8,8 @@
 	Add the ability of matrices AFTER YOU LEARN LINEAR ALGEBRA
 
 	wait() and love.timer.sleep() are basically the same, they both freeze the game. We need to develop a method of
-	wait() that doesn't involve the game freezing, "fake yielding" should be made
+    wait() that doesn't involve the game freezing, "fake yielding" should be made
+    
 	
 	We can identify two kinds of yielding:
 	- Passive Yielding > Game still operates, but the rest of the function that the yield occurs doesn't run
@@ -17,28 +18,29 @@
 	We need passive yielding as that's what wait() in roblox is.
 
     To-dos:
-    - As close to threading while being able to reference anything as close as possible
+    - As close to threading while being able to reference anything as close as possible -> On second thought it's too much effort and I'm lazy.
     - Physics Engine, like collisions, improved vectors etc.
 ]]
+require('OOP_Import');
 
-local psuedoOutput = require('psuedoOutput');
-local psuedoObjects = require('psuedoObjects');
-local psuedoThreading = require('psuedoThreading');
-local psuedoEvents = require('psuedoEvents');
-local psuedoPhysics = require('psuedoPhysics');
-local psuedoLife = require('psuedoWorkspace');
-local psuedoMatrixSpace = require('psuedoMatrixSpace');
-local psuedoRenderer = require('psuedoRenderer');
-local roblox2D = require('roblox2D');
-
-
-local CurrentWorld = psuedoLife.CurrentWorld;
+local CurrentWorld = Object.CurrentWorld;
 local Http = CurrentWorld:GetUtility('Http');
 local Space = CurrentWorld:GetUtility('Space');
 
 local BlockA = Instance.new('Block', Space);
-local BlockB = Instance.new('Block', Space);
+local c = BlockA.Moved:connect(function(a, b, c)
+    print('hi', a, b, c)
+end);
+local Manage = Ripple:ManageRipple('Moved');
+Manage:FireConnections(1, 4, 2);
 
+
+--[[
+BlockA.Name = 'Lmao';
+BlockB.Name = 'A';
+print(BlockA.Name, BlockB.Name);]]
+
+--[[
 BlockA.Size = Vector.new(20, 20);
 BlockA.Position = Vector.new(500, 300);
 
@@ -51,11 +53,13 @@ function love.mousemoved(x, y, dx, dy, istouch)
     --analyzeBlock(BlockB);
 end;
 
-function love.load(args) --although this is called exactly at the beginning of the game, the rest of the game code outside runs first.
-    --table.foreach(args, print);
-    love.window.setMode(800, 600, {resizable=true, vsync=false, minwidth=400, minheight=300})
-end;
+
 --dt is the change in time, basically.
 function love.update(dt) --seems to be a loop, this is equivalent to runtime except it's more of a 2d runtime env rather than a 3d runtime env
     print(love.timer.getFPS());
+end;]]
+
+function love.load(args) --although this is called exactly at the beginning of the game, the rest of the game code outside runs first.
+    --table.foreach(args, print);
+    love.window.setMode(800, 600, {resizable=true, vsync=false, minwidth=400, minheight=300})
 end;
