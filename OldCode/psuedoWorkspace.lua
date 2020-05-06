@@ -10,6 +10,7 @@ local Stack = {}; --Psuedo Environment Memory
 local NullStack = {}; --this is actually equivalent to the children_stack standard objects have
 local Singularities = {}; --container storage for services, where only one service can exist
 local Worlds = {};
+local Blocks = {};
 --local Runtime = {};
 --[[
     Worlds[worldName] = {
@@ -52,6 +53,17 @@ API.NullMetatable = {
         end;
     end;
 };
+
+API.onCreation = function(self, className, obj)
+    if (className == 'World' and Worlds[obj] == nil) then
+        Worlds[obj] = {
+            Utilities = {};
+        };
+    end;
+    if (className == 'Block') then
+        table.insert(Blocks, obj);
+    end;
+end;
 
 API.stringRandom = function(self, max, includeNumbers)
 	local str = '';
@@ -146,11 +158,7 @@ API.newObject = function(self, className, parent)
     local meta = getmetatable(obj);
     local classdata = Classes[className]; --get information about the class
     --Service limited to only 1 object per world
-    if (className == 'World' and Worlds[obj] == nil) then
-        Worlds[obj] = {
-            Utilities = {};
-        };
-    end;
+    API:onCreation(className, obj);
     if (classdata.Limited == true) then
         if (parent ~= nil) then
             local getObjectWorld = API:getFirstAncestor(parent);
@@ -441,6 +449,10 @@ API.getStackObjectByHash = function(self, hash)
     end;
 end;
 
+API.getPhysicalObjects = function(self)
+    return Blocks;
+end;
+
 API.getStack = function(self)
     return Stack;
 end;
@@ -462,7 +474,19 @@ World = setmetatable({
         return nil;
     end;
     __metatable = 'Locked';
-})
+});
+
+Instance = setmetatable({
+    new = function(className, parent)
+        return API:newObject(className, parent);
+    end;
+}, {
+    __newindex = function(self, index, value)
+        fatal('Attempt to add a new index ('..tostring(index)..') to Vector');
+        return nil;
+    end;
+    __metatable = 'Locked';
+});
 --[[
     Edit modes:
     0 - No edit
@@ -655,6 +679,25 @@ API:newClass('Block', {
         end;
         EditMode = 1;
     };
+    {
+        Name = 'Velocity';
+        Generator = true;
+        IsCallback = false;
+        Default = function() 
+            local vector = psuedoObjects:createType('Vector');
+            vector.x = 0;
+            vector.y = 0;
+            return vector;
+        end;
+        EditMode = 3;
+    };
+    {
+        Name = 'Collidable';
+        Generator = true;
+        IsCallback = false;
+        Default = true;
+        EditMode = 3;
+     };
     {
         Name = 'Rotation';
         Generator = false;

@@ -136,13 +136,17 @@ API:newType('Vector', {
         edit_mode = 1;
     };
 }, {
-    --[[__add = function(vector1, vector2)
-
+    __add = function(vector1, vector2)
+        if (type(vector1):lower() == 'vector' and type(vector2):lower() == type(vector1):lower()) then
+            return Vector.new(vector1.x + vector2.x, vector1.y + vector2.y);
+        end;
     end;
     __sub = function(vector1, vector2)
-
+        if (type(vector1):lower() == 'vector' and type(vector2):lower() == type(vector1):lower()) then
+            return Vector.new(vector1.x - vector2.x, vector1.y - vector2.y);
+        end;
     end;
-    __mul = function(vector1, vector2)
+    --[[__mul = function(vector1, vector2) this is some complicated shit, we would have to define the existence of a vector
 
     end;
     __div = function(vector1, vector2)
@@ -187,7 +191,7 @@ Vector = setmetatable({
         return nil;
     end;
     __metatable = 'Locked';
-})
+});
 Color = setmetatable({
     new = function(r, g, b)
         local obj = API:createType('Color');
@@ -202,7 +206,7 @@ Color = setmetatable({
         return nil;
     end;
     __metatable = 'Locked';
-})
+});
 psuedoObjects = API;
 type = function(var)
     return API:modType(var);
