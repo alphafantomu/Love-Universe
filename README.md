@@ -7,7 +7,7 @@ Solely for fun. Also the game engine I'm writing it for is a bit new and odd to 
 ### Status
 The skeleton of the engine is complete, the skeleton being object management, custom types, and events (called Ripples). The old-skeleton of the engine can be found at /OldCode, but the more recent version outside of it is more optimized, stable and takes less space. Although things like physics, rendering, camera systems, and all their events will take awhile to program.
 
-The repository is usable, but you would have to finish writing the objects and their properties yourself, `OOP_Import.lua` contains the registration of custom objects and types, along with their properties.
+The repository is usable, but you would have to finish writing the objects and their properties yourself, `OEE_Import.lua` contains the registration of custom objects and types, along with their properties.
 
 ## Features
 * Object Environment System (Easier understood as a tree system)

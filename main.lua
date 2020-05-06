@@ -21,7 +21,7 @@
     - As close to threading while being able to reference anything as close as possible -> On second thought it's too much effort and I'm lazy.
     - Physics Engine, like collisions, improved vectors etc.
 ]]
-require('OOP_Import');
+require('OEE_Import');
 
 local CurrentWorld = Object.CurrentWorld;
 local Http = CurrentWorld:GetUtility('Http');
