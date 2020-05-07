@@ -1,26 +1,4 @@
 
---[[
-	Notes:
-
-	Love Engine does not support colored outputs in dev console
-
-	Need to improve vectors, colors, etc, add magnitude to vectors
-	Add the ability of matrices AFTER YOU LEARN LINEAR ALGEBRA
-
-	wait() and love.timer.sleep() are basically the same, they both freeze the game. We need to develop a method of
-    wait() that doesn't involve the game freezing, "fake yielding" should be made
-    
-	
-	We can identify two kinds of yielding:
-	- Passive Yielding > Game still operates, but the rest of the function that the yield occurs doesn't run
-	- Aggressive Yielding > Game literally "pauses", everything doesn't really run
-
-	We need passive yielding as that's what wait() in roblox is.
-
-    To-dos:
-    - As close to threading while being able to reference anything as close as possible -> On second thought it's too much effort and I'm lazy.
-    - Physics Engine, like collisions, improved vectors etc.
-]]
 require('OEE_Import');
 
 local CurrentWorld = Object.CurrentWorld;
@@ -28,12 +6,9 @@ local Http = CurrentWorld:GetUtility('Http');
 local Space = CurrentWorld:GetUtility('Space');
 
 local BlockA = Instance.new('Block', Space);
-local c = BlockA.Moved:connect(function(a, b, c)
-    print('hi', a, b, c)
-end);
-local Manage = Ripple:ManageRipple('Moved');
-Manage:FireConnections(1, 4, 2);
-
+local BlockB = Instance.new('Block', Space);
+print(BlockA.Position == BlockB.Position);
+print(BlockA.Position);
 
 --[[
 BlockA.Name = 'Lmao';

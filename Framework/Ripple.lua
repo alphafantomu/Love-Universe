@@ -41,7 +41,9 @@
     2 - writeonly
     3 - read+writeonly
 ]]
-local API = {};
+local API = {
+    Mode = 1;
+};
 local Ripples = {};
 local RipplesCache = {};
 local ConnectionsCache = {}; --connection cache for managers
@@ -99,17 +101,33 @@ local ConnectionOptions = {
         return self.Object.Connected;
     end;
     GetCallback = function(self)
+        if (API.Mode == 1 and self.Object.LoveId ~= false) then
+            return love.handlers[self.Object.LoveId];
+        end;
         return self.Callback;
     end;
     SetCallback = function(self, Callback)
-        self.Callback = Callback;
+        if (API.Mode == 1 and self.Object.LoveId ~= false) then
+            love.handlers[self.Object.LoveId] = Callback;
+        else
+            self.Callback = Callback;
+        end;
     end;
     FireCallback = function(self, ...)
-        if (self.Callback ~= nil) then
+        if (API.Mode == 1 and self.Object.LoveId ~= false and self.Object.Connected == true and API:LoveHandlerExists(self.Object.LoveId) == true) then
+            love.event.push(self.Object.LoveId, ...);
+        elseif (self.Callback ~= nil and self.Object.Connected == true) then
             self.Callback(...);
         end;
     end;
 };
+
+API.LoveHandlerExists = function(self, id)
+    local ran, result = pcall(function()
+        return love.handlers[id] ~= nil;
+    end);
+    return result;
+end;
 
 API.TearRipple = function(self, name)
     if (Ripples[name] ~= nil) then return Ripples[name]; end;

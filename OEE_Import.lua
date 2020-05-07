@@ -2,6 +2,9 @@
 require('Framework/Object');
 require('Framework/Type');
 require('Framework/Ripple');
+require('Framework/Time');
+require('Visuals/Drawing');
+require('Visuals/Waterfall');
 
 --Object Classes--
 Object:newClass('World', {
@@ -160,7 +163,7 @@ Object:newClass('Block', {
         Name = 'Size';
         Generator = true;
         IsCallback = false;
-        Default = function() 
+		Default = function()
             local vector = CustomTypes:createType('Vector');
             vector.x = 100;
             vector.y = 100;
@@ -172,7 +175,7 @@ Object:newClass('Block', {
         Name = 'Position';
         Generator = true;
         IsCallback = false;
-		Default = function() 
+		Default = function()
 			local vector = CustomTypes:createType('Vector');
             vector.x = 0;
             vector.y = 0;
@@ -193,7 +196,7 @@ Object:newClass('Block', {
         Name = 'Velocity';
         Generator = true;
         IsCallback = false;
-        Default = function() 
+		Default = function() 
             local vector = CustomTypes:createType('Vector');
             vector.x = 0;
             vector.y = 0;
@@ -224,7 +227,7 @@ Object:newClass('Block', {
     };
     {
         Name = 'Moved';
-        Generator = true; --generates a new value by firing Default() every time if default is a function
+        Generator = false; --generates a new value by firing Default() every time if default is a function
         IsCallback = false;
         Default = function(self)
             return Ripple:TearRipple('Moved');
@@ -234,6 +237,7 @@ Object:newClass('Block', {
 }, false);
 
 --Custom Types--
+
 CustomTypes:newType('Vector', {
     {
         index = 'x';
@@ -301,29 +305,36 @@ CustomTypes:newType('Color', {
     };
 }, {});
 
+
 --Rippling--
 
 CustomTypes:newType('Ripple', {
     {index = 'Name';
-        function_dependent = false;
+		function_dependent = false;
+		is_callback = false;
         edit_mode = 1;
         default = 'Ripple';
     };
     {index = 'connect';
-        function_dependent = false;
+		function_dependent = false;
+		is_callback = false;
         edit_mode = 1;
         default = function(self, callback)
             assert(Ripple.Ripples[self.Name] ~= nil, 'Ripple data not found');
             local Connection = CustomTypes:createType('Connection');
             local Manager = Ripple:ManageConnection(Connection);
-            Manager:SetCallback(callback);
-            CustomTypes:forceNewIndex(Connection, 'Connected', true);
             table.insert(Ripple.Ripples[self.Name].Connections, Connection);
+            if (Ripple.Mode == 1) then
+                CustomTypes:forceNewIndex(Connection, 'LoveId', Object:generateUnique(25));
+			end;
+			Manager:SetCallback(callback); --manages the love handler too
+			CustomTypes:forceNewIndex(Connection, 'Connected', true);
             return Connection;
         end;
     };
     {index = 'wait';
-        function_dependent = false;
+		function_dependent = false;
+		is_callback = false;
         edit_mode = 1;
         default = function(self)
             
@@ -333,17 +344,90 @@ CustomTypes:newType('Ripple', {
 
 CustomTypes:newType('Connection', {
     {index = 'Connected';
-        function_dependent = false;
+		function_dependent = false;
+		is_callback = false;
+        edit_mode = 1;
+        default = false;
+    };
+    {index = 'LoveId';
+		function_dependent = false;
+		is_callback = false;
         edit_mode = 1;
         default = false;
     };
     {index = 'Disconnect';
-        function_dependent = false;
+		function_dependent = false;
+		is_callback = false;
         edit_mode = 1;
         default = function(self)
             local Manager = Ripple:ManageConnection(self);
             Manager:SetCallback(nil);
-            CustomTypes:forceNewIndex(self, 'Connected', false);
+			CustomTypes:forceNewIndex(self, 'Connected', false);
+			if (Ripple.Mode == 1) then
+				love.handlers[self.LoveId] = nil;
+			end;
+        end;
+    };
+}, {});
+
+
+--Time Handlers--
+
+CustomTypes:newType('Timer', {
+	{index = 'Started';
+		function_dependent = false;
+		is_callback = false;
+        edit_mode = 1;
+        default = false;
+	};
+	{index = 'TimePassed';
+		function_dependent = false;
+		is_callback = false;
+        edit_mode = 3;
+        default = 0;
+    };
+    {index = 'Start';
+		function_dependent = false;
+		is_callback = false;
+        edit_mode = 1;
+        default = function(self, s, callback, ...)
+			local Event = Waterfall.TimeChanged;
+			local Passed, Connection = false, nil;
+			local Args = {...};
+			CustomTypes:forceNewIndex(self, 'Started', true);
+			Connection = Event:connect(function(dt)
+				self.TimePassed = self.TimePassed + dt;
+				if (self.Started == false) then
+					self.Timepassed = 0;
+					Passed = true;
+					Connection:Disconnect();
+				end;
+				if (self.TimePassed >= s and Passed == false) then
+					Passed = true;
+					callback(unpack(Args));
+					Connection:Disconnect();
+					CustomTypes:forceNewIndex(self, 'Started', false);
+					Passed = false;
+				end;
+			end);
+        end;
+    };
+    {index = 'Restart';
+		function_dependent = false;
+		is_callback = false;
+        edit_mode = 1;
+		default = function(self, s, callback, ...)
+			self:Stop();
+            self:Start(s, callback, ...);
+        end;
+	};
+	{index = 'Stop';
+		function_dependent = false;
+		is_callback = false;
+        edit_mode = 1;
+		default = function(self)
+			CustomTypes:forceNewIndex(self, 'Started', false);
+			self.TimePassed = 0;
         end;
     };
 }, {});
@@ -395,3 +479,5 @@ Object.CurrentWorld = Object:newObject('World');
 for i, v in next, {'Space', 'Time', 'Players', 'Storage', 'Database', 'Http'} do
 	Object:newObject(v, Object.CurrentWorld);
 end;
+
+Waterfall.TimeChanged = Ripple:TearRipple('TimeChanged');
