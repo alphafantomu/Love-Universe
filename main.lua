@@ -7,9 +7,19 @@ local Space = CurrentWorld:GetUtility('Space');
 
 local BlockA = Instance.new('Block', Space);
 local BlockB = Instance.new('Block', Space);
-print(BlockA.Position == BlockB.Position);
-print(BlockA.Position);
 
+local A = BlockA.Moved:connect(function()
+    print'blocka';
+end);
+local B = BlockB.Moved:connect(function()
+    print'blockb';
+end);
+
+local B = Space.Moved:connect(function() print'space' end);
+local C = Ripple:ManageRipple('Moved');
+local Connections = C:GetProcessorConnections('Block');
+table.foreach(Connections, print);
+C:FireProcessorConnections('Block');
 --[[
 BlockA.Name = 'Lmao';
 BlockB.Name = 'A';
@@ -28,13 +38,15 @@ function love.mousemoved(x, y, dx, dy, istouch)
     --analyzeBlock(BlockB);
 end;
 
-
 --dt is the change in time, basically.
 function love.update(dt) --seems to be a loop, this is equivalent to runtime except it's more of a 2d runtime env rather than a 3d runtime env
     print(love.timer.getFPS());
 end;]]
-
 function love.load(args) --although this is called exactly at the beginning of the game, the rest of the game code outside runs first.
     --table.foreach(args, print);
     love.window.setMode(800, 600, {resizable=true, vsync=false, minwidth=400, minheight=300})
 end;
+
+function love.draw()
+    love.graphics.rectangle("fill", 20, 50, 60, 120 )
+end

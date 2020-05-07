@@ -32,6 +32,16 @@ Object:newClass('Space', {
         IsCallback = false;
         Default = 'Space';
         EditMode = 3;
+	};
+	{
+        Name = 'Moved';
+        Generator = true;
+        IsCallback = false;
+        Default = function(self)
+			local RippleObject = Ripple:TearRipple('Moved');
+			return Ripple:AttachProcessor(self, 'Moved');
+        end;
+        EditMode = 1;
     };
 }, true);
 Object:newClass('Time', {
@@ -133,7 +143,7 @@ Object:newClass('Http', {
             return table.concat(res, '');
         end;
         EditMode = 1;
-    };
+	};
 }, true);
 
 --------------------------------------Objects-----------------------------------------
@@ -188,7 +198,8 @@ Object:newClass('Block', {
         Generator = true;
         IsCallback = false;
         Default = function() 
-            return CustomTypes:createType('Event');
+            local RippleObject = Ripple:TearRipple('Touched');
+			return Ripple:AttachProcessor(self, 'Touched');
         end;
         EditMode = 1;
     };
@@ -205,13 +216,34 @@ Object:newClass('Block', {
         EditMode = 3;
     };
     {
-        Name = 'Collidable';
-        Generator = true;
+        Name = 'CanCollide';
+        Generator = false;
         IsCallback = false;
         Default = true;
         EditMode = 3;
-     };
-    {
+	};
+	{
+        Name = 'Massless';
+        Generator = false;
+        IsCallback = false;
+        Default = true;
+        EditMode = 3;
+	};
+	{
+        Name = 'Transparency';
+        Generator = false;
+        IsCallback = false;
+        Default = 0;
+        EditMode = 3;
+	};
+	{
+        Name = 'Anchored';
+        Generator = true;
+        IsCallback = false;
+        Default = false;
+        EditMode = 3;
+    };
+    { --Rotation is not a vector as it doesn't rotate in x or y, it only rotates in one direction.
         Name = 'Rotation';
         Generator = false;
         IsCallback = false;
@@ -219,7 +251,7 @@ Object:newClass('Block', {
         EditMode = 3;
     };
     {
-        Name = 'Type';
+        Name = 'DrawMode';
         Generator = false;
         IsCallback = false;
         Default = 'line';
@@ -227,10 +259,11 @@ Object:newClass('Block', {
     };
     {
         Name = 'Moved';
-        Generator = false; --generates a new value by firing Default() every time if default is a function
+        Generator = true;
         IsCallback = false;
         Default = function(self)
-            return Ripple:TearRipple('Moved');
+			local RippleObject = Ripple:TearRipple('Moved');
+			return Ripple:AttachProcessor(self, 'Moved');
         end;
         EditMode = 1;
     };
@@ -319,17 +352,75 @@ CustomTypes:newType('Ripple', {
 		function_dependent = false;
 		is_callback = false;
         edit_mode = 1;
-        default = function(self, callback)
-            assert(Ripple.Ripples[self.Name] ~= nil, 'Ripple data not found');
+		default = function(self, callback)
+			local RippleData = Ripple.Ripples[self.Name];
+			assert(RippleData ~= nil, 'Ripple data not found');
             local Connection = CustomTypes:createType('Connection');
             local Manager = Ripple:ManageConnection(Connection);
-            table.insert(Ripple.Ripples[self.Name].Connections, Connection);
             if (Ripple.Mode == 1) then
                 CustomTypes:forceNewIndex(Connection, 'LoveId', Object:generateUnique(25));
 			end;
 			Manager:SetCallback(callback); --manages the love handler too
 			CustomTypes:forceNewIndex(Connection, 'Connected', true);
+			table.insert(RippleData.Connections, Connection);
             return Connection;
+        end;
+    };
+    {index = 'wait';
+		function_dependent = false;
+		is_callback = false;
+        edit_mode = 1;
+        default = function(self)
+            
+        end;
+    };
+}, {});
+
+CustomTypes:newType('Processor', {
+    {index = 'Ripple';
+		function_dependent = false;
+		is_callback = false;
+        edit_mode = 1;
+        default = false;
+	};
+	{index = 'Object';
+		function_dependent = false;
+		is_callback = false;
+        edit_mode = 1;
+        default = false;
+    };
+    {index = 'connect';
+		function_dependent = false;
+		is_callback = false;
+        edit_mode = 1;
+		default = function(self, callback)
+			local RippleData = Ripple.Ripples[self.Ripple.Name];
+			local ClassObject = self.Object;
+			if (RippleData ~= false and ClassObject ~= false) then
+				local Processors = RippleData.Processors;
+				local ClassProcessor = Processors[ClassObject.ClassName];
+				if (ClassProcessor ~= nil) then
+					local Connection = CustomTypes:createType('Connection');
+					local Manager = Ripple:ManageConnection(Connection);
+					if (Ripple.Mode == 1) then
+						CustomTypes:forceNewIndex(Connection, 'LoveId', Object:generateUnique(25));
+					end;
+					Manager:SetCallback(callback);
+					local ClassProcessorIndex, RippleConnectionIndex = #ClassProcessor + 1, #RippleData.Connections + 1;
+					table.insert(Manager.Records, {ClassProcessor, ClassProcessorIndex});
+					table.insert(Manager.Records, {RippleData.Connections, RippleConnectionIndex});
+					table.insert(ClassProcessor, Connection);
+					if (ClassProcessor[ClassProcessorIndex] ~= Connection) then
+						print('There was an error calculating the class connection index');
+					end;
+					table.insert(RippleData.Connections, Connection);
+					if (RippleData.Connections[RippleConnectionIndex] ~= Connection) then
+						print('There was an error calculating the ripple connection index');
+					end;
+					CustomTypes:forceNewIndex(Connection, 'Connected', true);
+					return Connection;
+				end;
+			end;
         end;
     };
     {index = 'wait';
@@ -365,6 +456,12 @@ CustomTypes:newType('Connection', {
 			CustomTypes:forceNewIndex(self, 'Connected', false);
 			if (Ripple.Mode == 1) then
 				love.handlers[self.LoveId] = nil;
+			end;
+			local Records = Manager.Records;
+			for i = 1, #Records do
+				local RecordData = Records[i];
+				local Record, Index = unpack(RecordData);
+				table.remove(Record, Index);
 			end;
         end;
     };
@@ -475,9 +572,22 @@ Color = setmetatable({
 });
 
 --Inits--
+
+Object.ObjectCreated = Ripple:TearRipple('ObjectCreated');
+Waterfall.TimeChanged = Ripple:TearRipple('TimeChanged');
+
+Object.ObjectCreated:connect(function(Obj, ClassName)
+    if (ClassName == 'World' and Object.Worlds[Obj] == nil) then
+        Object.Worlds[Obj] = {
+            Utilities = {};
+        };
+    elseif (ClassName == 'Block') then
+        table.insert(Object.Blocks, Obj);
+    end;
+end);
+
 Object.CurrentWorld = Object:newObject('World');
 for i, v in next, {'Space', 'Time', 'Players', 'Storage', 'Database', 'Http'} do
 	Object:newObject(v, Object.CurrentWorld);
 end;
 
-Waterfall.TimeChanged = Ripple:TearRipple('TimeChanged');

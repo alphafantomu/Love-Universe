@@ -389,14 +389,18 @@ API.newObject = function(self, className, parent) --optimized like a madman
     local meta = getmetatable(obj);
     local classdata = Classes[className]; --get information about the class
     --Service limited to only 1 object per world
-	self:onCreation(className, obj);
-	
+    --self:onCreation(className, obj);
+    if (API.ObjectCreated ~= nil) then
+        --[[local Manage = Ripple:ManageConnection(API.CreateConnection);
+        Manage:FireCallback(obj, className);]]
+        local Manage = Ripple:ManageRipple('ObjectCreated');
+        Manage:FireConnections(obj, className);
+    end;
 	if (classdata.Limited == true and parent ~= nil) then --wtf is with this conditional? slightly optimized
 		--[[
 			I think this conditional is for services to be attached to one world. But what if a service didn't have a parent? What then? 
 		]]
 		local getObjectWorld = API:getFirstAncestor(parent);
-		
         assert(Worlds[getObjectWorld].Utilities[classdata.Name] == nil, 'Object already exists'); --Error is service already exists
 		Worlds[getObjectWorld].Utilities[classdata.Name] = obj;
     end;

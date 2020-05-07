@@ -15,12 +15,13 @@
     Obviously I don't have the internal source code for Roblox and how everything works, kinda. So here's my theory on how events work.
 
     ‣ Object
-        ‣ Ripple (Much like one person, but exists across different timelines)
-            ‣ Connect
-                ‣ Connection
-                    ‣ Connected
-                    ‣ Disconnect
-            ‣ Wait
+		‣ Ripple (Much like one person, but exists across different timelines)
+			‣ Processor (One per event copy of an object)
+				‣ Connect
+					‣ Connection
+						‣ Connected
+						‣ Disconnect
+				‣ Wait
 
     ‣ Ripple Handler (We can modify the ripple across different spaces at once)
         ‣ GetConnections
@@ -34,6 +35,8 @@
             ‣ GetCallback
             ‣ SetCallback
             ‣ FireCallback
+
+    There is currently an issue with ripples, same event bullshit
 ]]
 --[[
     0 - no edit
@@ -42,7 +45,7 @@
     3 - read+writeonly
 ]]
 local API = {
-    Mode = 1;
+    Mode = 0;
 };
 local Ripples = {};
 local RipplesCache = {};
@@ -50,23 +53,41 @@ local ConnectionsCache = {}; --connection cache for managers
 
 API.Ripples = Ripples;
 local RippleOptions = {
+	GetProcessorConnections = function(self, className)
+		local Processors = self.Object.Processors;
+		return Processors[className];
+	end;
+	FireProcessorConnections = function(self, className, ...)
+		local Processors = self.Object.Processors;
+		local ClassProcessor = Processors[className];
+		if (ClassProcessor ~= nil) then
+			for i = 1, #ClassProcessor do
+				local Connection = ClassProcessor[i];
+				if (Connection.Connected == true) then
+					local Manager = API:ManageConnection(Connection);
+					Manager:FireCallback(...);
+				end;
+			end;
+		end;
+	end;
+	DisconnectProcessorConnections = function(self, className)
+		local Processors = self.Object.Processors;
+		local ClassProcessor = Processors[className];
+		if (ClassProcessor ~= nil) then
+			for i = 1, #ClassProcessor do
+				local Connection = ClassProcessor[i];
+				if (Connection.Connected == true) then
+					Connection:Disconnect();
+				end;
+			end;
+		end;
+	end;
     GetConnections = function(self)
         local All = self.Object.Connections;
         local Valid = {};
         for i = 1, #All do
             local Connection = All[i];
             if (Connection.Connected == true) then
-                table.insert(Valid, Connection);
-            end;
-        end;
-        return Valid;
-    end;
-    GetDisconnections = function(self)
-        local All = self.Object.Connections;
-        local Valid = {};
-        for i = 1, #All do
-            local Connection = All[i];
-            if (Connection.Connected == false) then
                 table.insert(Valid, Connection);
             end;
         end;
@@ -129,12 +150,30 @@ API.LoveHandlerExists = function(self, id)
     return result;
 end;
 
+API.AttachProcessor = function(self, classObject, name)
+	local RippleData = Ripples[name];
+	if (RippleData ~= nil and classObject ~= nil) then
+		local Processors = RippleData.Processors;
+		local className = classObject.ClassName;
+		local ClassProcessor = Processors[className];
+		if (ClassProcessor ==  nil) then
+			ClassProcessor = {};
+			Processors[className] = ClassProcessor;
+		end;
+		local Proxy = CustomTypes:createType('Processor');
+		CustomTypes:forceNewIndex(Proxy, 'Ripple', RippleData.Object);
+		CustomTypes:forceNewIndex(Proxy, 'Object', classObject);
+		return Proxy;
+	end;
+end;
+
 API.TearRipple = function(self, name)
-    if (Ripples[name] ~= nil) then return Ripples[name]; end;
+    if (Ripples[name] ~= nil) then return Ripples[name].Object; end;
     local Object = CustomTypes:createType('Ripple');
     CustomTypes:forceNewIndex(Object, 'Name', name);
     Ripples[name] = {
-        Object = Object;
+		Object = Object;
+		Processors = {};
         Connections = {};
     };
     return Object;
@@ -143,7 +182,8 @@ end;
 API.ManageConnection = function(self, obj) --there is only one per connection so we can rereference it
     if (ConnectionsCache[obj] ~= nil) then return ConnectionsCache[obj]; end;
     local Options = {
-        Object = obj;
+		Object = obj;
+		Records = {};
     };
     for i, v in next, ConnectionOptions do Options[i] = v; end;
     ConnectionsCache[obj] = Options;
