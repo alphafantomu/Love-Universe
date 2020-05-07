@@ -36,7 +36,7 @@ local BasePropertyAPI = {
 	end;
 	GetDefaultValue = function(self, index)
         local property = self:getProperty(index);
-		if (property.Generator == true and type(property.Default):lower() == 'function') then
+        if (property.Generator == true and type(property.Default):lower() == 'function') then
 			return property.Default(self.Object);
         end;
         return property.Default;
@@ -433,7 +433,7 @@ API.newObject = function(self, className, parent) --optimized like a madman
 			if (res == true) then
 				assert(property.EditMode == 1 or property.EditMode == 3, 'Property '..index..' cannot be read');
 				if (rawget(standardProperties, index) == nil and property.Generator == true) then
-					rawset(standardProperties, index, parsed:GetDefaultValue(index));
+					rawset(standardProperties, index, parsed:GetDefaultValue(index)); --this makes sure only one vector is created
 				end;
 				return rawget(standardProperties, index) or parsed:GetDefaultValue(index);
 			end;
@@ -570,27 +570,6 @@ API.getStack = function(self)
 end;
 
 --[[
-World = setmetatable({
-    new = function()
-        local NewWorld = API:newObject('World');
-        API:newObject('Space', NewWorld);
-        API:newObject('Time', NewWorld);
-        API:newObject('Players', NewWorld);
-        API:newObject('Storage', NewWorld);
-        API:newObject('Database', NewWorld);
-        API:newObject('Http', NewWorld);
-        return NewWorld;
-    end;
-}, {
-    __newindex = function(self, index, value)
-        fatal('Attempt to add a new index ('..tostring(index)..') to Vector');
-        return nil;
-    end;
-    __metatable = 'Locked';
-});]]
-
-
---[[
     Edit modes:
     0 - No edit
     1 - ReadOnly
@@ -598,14 +577,4 @@ World = setmetatable({
     3 - Read+WritePerms
 ]]
 
---we should be able to recreate objects in new worlds
---[[
-API.CurrentWorld = API:newObject('World');
-API:newObject('Space', API.CurrentWorld);
-API:newObject('Time', API.CurrentWorld);
-API:newObject('Players', API.CurrentWorld);
-API:newObject('Storage', API.CurrentWorld);
-API:newObject('Database', API.CurrentWorld);
-API:newObject('Http', API.CurrentWorld);
-]]
 Object = API;
