@@ -295,6 +295,16 @@ CustomTypes:newType('Vector', {
         end;
         edit_mode = 1;
     };
+    {
+        index = 'Changed';
+        function_dependent = true;
+        is_callback = false;
+        default = function(self)
+            local RippleObject = Ripple:TearRipple('Changed');
+			return Ripple:AttachProcessor(self, 'Changed');
+        end;
+        edit_mode = 1;
+    };
 }, {
     __add = function(vector1, vector2)
         if (type(vector1):lower() == 'vector' and type(vector2):lower() == type(vector1):lower()) then
@@ -370,7 +380,7 @@ CustomTypes:newType('Ripple', {
 		function_dependent = false;
 		is_callback = false;
         edit_mode = 1;
-        default = function(self)
+        default = function(self, callback)
             
         end;
     };
@@ -427,7 +437,7 @@ CustomTypes:newType('Processor', {
 		function_dependent = false;
 		is_callback = false;
         edit_mode = 1;
-        default = function(self)
+        default = function(self, callback)
             
         end;
     };

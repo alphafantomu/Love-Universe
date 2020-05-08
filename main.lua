@@ -5,21 +5,18 @@ local CurrentWorld = Object.CurrentWorld;
 local Http = CurrentWorld:GetUtility('Http');
 local Space = CurrentWorld:GetUtility('Space');
 
-local BlockA = Instance.new('Block', Space);
-local BlockB = Instance.new('Block', Space);
+local V = Vector.new(5, 2);
+local V1 = Vector.new(1, 2);
 
-local A = BlockA.Moved:connect(function()
-    print'blocka';
+local A, B = V.Changed, V1.Changed;
+local C = A:connect(function()
+    print'hi';
 end);
-local B = BlockB.Moved:connect(function()
-    print'blockb';
-end);
+C:Disconnect();
+local F = B:connect(function() print'hi2'; end);
 
-local B = Space.Moved:connect(function() print'space' end);
-local C = Ripple:ManageRipple('Moved');
-local Connections = C:GetProcessorConnections('Block');
-table.foreach(Connections, print);
-C:FireProcessorConnections('Block');
+local M = Ripple:ManageRipple('Changed');
+M:FireProcessorConnections('Vector');
 --[[
 BlockA.Name = 'Lmao';
 BlockB.Name = 'A';
