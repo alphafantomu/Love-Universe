@@ -50,6 +50,7 @@ local API = {
 local Ripples = {};
 local RipplesCache = {};
 local ConnectionsCache = {}; --connection cache for managers
+local ProcessorCache = {};
 
 API.Ripples = Ripples;
 local RippleOptions = {
@@ -151,6 +152,7 @@ API.LoveHandlerExists = function(self, id)
 end;
 
 API.AttachProcessor = function(self, classObject, name)
+    if (ProcessorCache[classObject] ~= nil) then return ProcessorCache[classObject]; end;
 	local RippleData = Ripples[name];
 	if (RippleData ~= nil and classObject ~= nil) then
 		local Processors = RippleData.Processors;
@@ -162,7 +164,8 @@ API.AttachProcessor = function(self, classObject, name)
 		end;
 		local Proxy = CustomTypes:createType('Processor');
 		CustomTypes:forceNewIndex(Proxy, 'Ripple', RippleData.Object);
-		CustomTypes:forceNewIndex(Proxy, 'Object', classObject);
+        CustomTypes:forceNewIndex(Proxy, 'Object', classObject);
+        ProcessorCache[classObject] = Proxy;
 		return Proxy;
 	end;
 end;

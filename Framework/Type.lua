@@ -77,6 +77,9 @@ API.createType = function(self, classType) --creates an object of type
     local parsedDictionary = API:parseProperties(data, dictionary);
     meta.stasis = stasis;
     meta.__index = function(self, index)
+        if (index == 'ClassName') then
+            return classType;
+        end;
         local Property = parsedDictionary:getProperty(index);
         assert(Property ~= nil, 'Property doesn\'t exist');
         assert(Property.edit_mode == 1 or Property.edit_mode == 3, 'Cannot read this property');
