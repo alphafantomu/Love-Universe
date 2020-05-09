@@ -36,7 +36,10 @@
             ‣ SetCallback
             ‣ FireCallback
 
-    There is currently an issue with ripples, same event bullshit
+    PerProcessor
+        ‣ Object
+            ‣ RippleName
+                ‣ Connections
 ]]
 --[[
     0 - no edit
@@ -51,12 +54,26 @@ local Ripples = {};
 local RipplesCache = {};
 local ConnectionsCache = {}; --connection cache for managers
 local ProcessorCache = {};
+local PerProcessor = {};
 
 API.Ripples = Ripples;
 local RippleOptions = {
 	GetProcessorConnections = function(self, className)
 		local Processors = self.Object.Processors;
 		return Processors[className];
+    end;
+	FireRippleProcessorConnections = function(self, obj, ...)
+		local ProcessorObject = API:GetProcessorObject(obj);
+		local Connections = ProcessorObject[self.Name];
+		if (Connections ~= nil) then
+			for i = 1, #Connections do
+				local Connection = Connections[i];
+				if (Connection.Connected == true) then
+					local Manager = API:ManageConnection(Connection);
+					Manager:FireCallback(...);
+				end;
+			end;
+		end;
 	end;
 	FireProcessorConnections = function(self, className, ...)
 		local Processors = self.Object.Processors;
@@ -144,6 +161,15 @@ local ConnectionOptions = {
     end;
 };
 
+API.GetProcessorObject = function(self, obj)
+    local PerObject = PerProcessor[obj];
+    if (PerObject == nil) then
+        PerObject = {};
+        PerProcessor[obj] = PerObject;
+    end;
+    return PerObject;
+end;
+
 API.LoveHandlerExists = function(self, id)
     local ran, result = pcall(function()
         return love.handlers[id] ~= nil;
@@ -162,10 +188,18 @@ API.AttachProcessor = function(self, classObject, name)
 			ClassProcessor = {};
 			Processors[className] = ClassProcessor;
 		end;
-		local Proxy = CustomTypes:createType('Processor');
+        local Proxy = CustomTypes:createType('Processor');
 		CustomTypes:forceNewIndex(Proxy, 'Ripple', RippleData.Object);
         CustomTypes:forceNewIndex(Proxy, 'Object', classObject);
         ProcessorCache[classObject] = Proxy;
+        local PerObject = PerProcessor[classObject];
+        if (PerObject == nil) then
+            PerObject = {};
+            PerProcessor[classObject] = PerObject;
+        end;
+        if (PerObject[name] == nil) then
+            PerObject[name] = {};
+        end;
 		return Proxy;
 	end;
 end;

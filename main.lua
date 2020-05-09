@@ -1,22 +1,52 @@
 
+--[[
+    ‣ Concepts
+
+    I think I have to be careful with my block physics, because there are different types of 2D games
+    ‣ 2D Scroller (Left to Right vice versa)
+    ‣ Top-down Dungeons
+    ‣ UI-Dependent
+    ‣ Psuedo-3D
+        ‣ 2D Scroller
+            ‣ Blocks can be anchored and solid, it doesn't really matter as the character will always collide with the block.
+        
+        ‣ Top-down Dungeons
+            ‣ If blocks are in the right place, anchoring and soliding the blocks should not be an issue.
+
+        ‣ UI-Dependent
+            ‣ Blocks should work just fine
+
+        ‣ Psuedo-3D
+            ‣ Having psuedo-3d blocks is like me having the ability to create a quantum computer, aka it's beyond me.
+
+    ‣ Physics
+        ‣ First we need to calculate whether the object is touching another object. This can be intensely complicated.
+        ‣ Circle, probably the easiest way to calculate if an object is interacting with it as it's easily described as a function.
+        ‣ Square/Rectangle, a bit more difficult as it does not use a function
+        ‣ Arc, potentially easier as you can use it to describe part of a function.
+        ‣ Quadrilaterals, gonna have to use my big brain for this one.
+        ‣ Ellipse, described as a formula
+        ‣ Mesh, no clue.
+        ‣ ArrayImage, no clue.
+        ‣ Line, easy.
+        ‣ Point, easy.
+        ‣ Polygon, death.
+        ‣ Stencils, no clue.
+        ‣ Triangle, maybe? dunno.
+]]
+
 require('OEE_Import');
 
 local CurrentWorld = Object.CurrentWorld;
 local Http = CurrentWorld:GetUtility('Http');
 local Space = CurrentWorld:GetUtility('Space');
 
-local V = Vector.new(5, 2);
-local V1 = Vector.new(1, 2);
-
-local A, B = V.Changed, V1.Changed;
-local C = A:connect(function()
-    print'hi';
+local Block = Instance.new('Block', Space);
+Block.Changed:connect(function(index, value)
+    print('For object Block', index, 'was changed to', value);
 end);
-C:Disconnect();
-local F = B:connect(function() print'hi2'; end);
+Block.Name = 'a';
 
-local M = Ripple:ManageRipple('Changed');
-M:FireProcessorConnections('Vector');
 --[[
 BlockA.Name = 'Lmao';
 BlockB.Name = 'A';
@@ -44,6 +74,3 @@ function love.load(args) --although this is called exactly at the beginning of t
     love.window.setMode(800, 600, {resizable=true, vsync=false, minwidth=400, minheight=300})
 end;
 
-function love.draw()
-    love.graphics.rectangle("fill", 20, 50, 60, 120 )
-end
