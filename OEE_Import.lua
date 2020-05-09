@@ -2,6 +2,7 @@
 require('Framework/Object');
 require('Framework/Type');
 require('Framework/Ripple');
+require('Framework/Physics');
 require('Framework/Time');
 require('Visuals/Drawing');
 require('Visuals/Waterfall');
@@ -258,12 +259,12 @@ Object:newClass('Block', {
         EditMode = 3;
     };
     {
-        Name = 'Moved';
+        Name = 'Changed';
         Generator = true;
         IsCallback = false;
         Default = function(self)
-			local RippleObject = Ripple:TearRipple('Moved');
-			return Ripple:AttachProcessor(self, 'Moved');
+			local RippleObject = Ripple:TearRipple('Changed');
+			return Ripple:AttachProcessor(self, 'Changed');
         end;
         EditMode = 1;
     };
@@ -415,10 +416,22 @@ CustomTypes:newType('Processor', {
 					if (Ripple.Mode == 1) then
 						CustomTypes:forceNewIndex(Connection, 'LoveId', Object:generateUnique(25));
 					end;
-					Manager:SetCallback(callback);
+                    Manager:SetCallback(callback);
+                    local ProcessorObject = Ripple:GetProcessorObject(ClassObject);
 					local ClassProcessorIndex, RippleConnectionIndex = #ClassProcessor + 1, #RippleData.Connections + 1;
 					table.insert(Manager.Records, {ClassProcessor, ClassProcessorIndex});
-					table.insert(Manager.Records, {RippleData.Connections, RippleConnectionIndex});
+                    table.insert(Manager.Records, {RippleData.Connections, RippleConnectionIndex});
+                    if (ProcessorObject ~= nil) then
+                        local ProcessorRipple = ProcessorObject[self.Ripple.Name];
+                        if (ProcessorRipple ~= nil) then
+                            local ProcessorRippleIndex = #ProcessorRipple + 1;
+                            table.insert(Manager.Records, {ProcessorRipple, ProcessorRippleIndex});
+                            table.insert(ProcessorRipple, Connection);
+                            if (ProcessorRipple[ProcessorRippleIndex] ~= Connection) then
+                                print('There was an error calculating the processor ripple index');
+                            end;
+                        end;
+                    end;
 					table.insert(ClassProcessor, Connection);
 					if (ClassProcessor[ClassProcessorIndex] ~= Connection) then
 						print('There was an error calculating the class connection index');
@@ -584,15 +597,29 @@ Color = setmetatable({
 --Inits--
 
 Object.ObjectCreated = Ripple:TearRipple('ObjectCreated');
+Object.PropertyChanged = Ripple:TearRipple('PropertyChanged');
 Waterfall.TimeChanged = Ripple:TearRipple('TimeChanged');
 
-Object.ObjectCreated:connect(function(Obj, ClassName)
-    if (ClassName == 'World' and Object.Worlds[Obj] == nil) then
-        Object.Worlds[Obj] = {
+--We can use Object.PropertyChanged to reverse time.
+--Just realized another issue with the connection ugh.
+Object.PropertyChanged:connect(function(self, index, value)
+    local Changed = self.Changed;
+    if (Changed ~= nil and type(Changed):lower() == 'processor') then
+        local ClassName = self.ClassName;
+        local ManageRipple = Ripple:ManageRipple('Changed');
+        ManageRipple:FireRippleProcessorConnections(self, index, value);
+    end;
+end);
+
+Object.ObjectCreated:connect(function(self)
+    local Class = self.ClassName;
+    if (Class == 'World' and Object.Worlds[self] == nil) then
+        Object.Worlds[self] = {
             Utilities = {};
         };
-    elseif (ClassName == 'Block') then
-        table.insert(Object.Blocks, Obj);
+        --Physics:
+    elseif (Class == 'Block') then
+        table.insert(Object.Blocks, self);
     end;
 end);
 

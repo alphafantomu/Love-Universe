@@ -381,6 +381,10 @@ API.forceNewIndex = function(self, obj, index, value)
     local meta = getrawmetatable(obj);
     local standardProperties = meta.standardProperties;
     rawset(standardProperties, index, value);
+    if (API.PropertyChanged ~= nil) then
+        local ManageRipple = Ripple:ManageRipple('PropertyChanged');
+        ManageRipple:FireConnections(obj, index, value);
+    end;
 end;
 
 API.newObject = function(self, className, parent) --optimized like a madman
@@ -390,12 +394,7 @@ API.newObject = function(self, className, parent) --optimized like a madman
     local classdata = Classes[className]; --get information about the class
     --Service limited to only 1 object per world
     --self:onCreation(className, obj);
-    if (API.ObjectCreated ~= nil) then
-        --[[local Manage = Ripple:ManageConnection(API.CreateConnection);
-        Manage:FireCallback(obj, className);]]
-        local Manage = Ripple:ManageRipple('ObjectCreated');
-        Manage:FireConnections(obj, className);
-    end;
+    
 	if (classdata.Limited == true and parent ~= nil) then --wtf is with this conditional? slightly optimized
 		--[[
 			I think this conditional is for services to be attached to one world. But what if a service didn't have a parent? What then? 
@@ -487,7 +486,11 @@ API.newObject = function(self, className, parent) --optimized like a madman
 						end;
 						OldMeta.__removeChildren(OldMeta.__object, self); --rereading my code I just have to hope I know what I'm doing bc I don't remember
 						if (OldMeta.__isPartOfChildren(OldMeta.__object, self) == false) then
-							NewMeta.__addChildren(NewMeta.__object, self);
+                            NewMeta.__addChildren(NewMeta.__object, self);
+                            if (API.PropertyChanged ~= nil) then
+                                local ManageRipple = Ripple:ManageRipple('PropertyChanged');
+                                ManageRipple:FireConnections(self, index, value);
+                            end;
 							rawset(defaultProperties, 'Parent', NewParentObject.__object);
 						else
 							OldMeta.__addChildren(OldMeta.__object, self); --for some fucking reason it failed, so uhh we have to add the obj back into the old parent just incase
@@ -509,12 +512,20 @@ API.newObject = function(self, className, parent) --optimized like a madman
 					assert(type(defaultProperties[index]):lower() ~= 'function', 'Property cannot be overrided'); --can't override functions at all
 					assert(index ~= 'ClassName', 'Property ClassName cannot be overrided');
 					if (type(value):lower() == type(defaultProperties[index]):lower()) then --must be the same type
-						rawset(defaultProperties, index, value);
+                        rawset(defaultProperties, index, value);
+                        if (API.PropertyChanged ~= nil) then
+                            local ManageRipple = Ripple:ManageRipple('PropertyChanged');
+                            ManageRipple:FireConnections(self, index, value);
+                        end;
 					end;
 				else
 					assert(parsed:CanRewrite(index), 'Property cannot be overrided');
 					assert(parsed:NewValueAcceptable(index, value), 'Property type not acceptable');
-					rawset(standardProperties, index, value);
+                    rawset(standardProperties, index, value);
+                    if (API.PropertyChanged ~= nil) then
+                        local ManageRipple = Ripple:ManageRipple('PropertyChanged');
+                        ManageRipple:FireConnections(self, index, value);
+                    end;
 				end;
 			end;
 		end);
@@ -544,7 +555,12 @@ API.newObject = function(self, className, parent) --optimized like a madman
         local meta = StackObject.__metatable;
         meta.__addChildren(meta.__object, obj);
     end;
-
+    if (API.ObjectCreated ~= nil) then
+        --[[local Manage = Ripple:ManageConnection(API.CreateConnection);
+        Manage:FireCallback(obj, className);]]
+        local Manage = Ripple:ManageRipple('ObjectCreated');
+        Manage:FireConnections(obj);
+    end;
     return obj;
 end;
 
