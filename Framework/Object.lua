@@ -34,7 +34,7 @@ local BasePropertyAPI = {
 		local Property = self:getProperty(index)
 		return callback(Property ~= nil, Property);
 	end;
-	GetDefaultValue = function(self, index)
+    GetDefaultValue = function(self, index)
         local property = self:getProperty(index);
         if (property.Generator == true and type(property.Default):lower() == 'function') then
 			return property.Default(self.Object);
@@ -306,17 +306,6 @@ API.NullMetatable = {
 };
 
 local Null = {__metatable = API.NullMetatable;};
-
-API.onCreation = function(self, className, obj) --we should revamp this
-    if (className == 'World' and Worlds[obj] == nil) then
-        Worlds[obj] = {
-            Utilities = {};
-        };
-    end;
-    if (className == 'Block') then
-        table.insert(Blocks, obj);
-    end;
-end;
 
 API.generateString = function(self, n) --fuck it dude, made it super short, lesser calculations and randomness
 	local str = '';

@@ -4,19 +4,21 @@ require('Framework/Type');
 require('Framework/Ripple');
 require('Framework/Physics');
 require('Framework/Time');
+require('Framework/Input');
+require('Framework/Application');
 require('Visuals/Drawing');
 require('Visuals/Waterfall');
+require('Visuals/Particle');
 
 --Object Classes--
-Object:newClass('World', {
+Object:newClass('World', { --Container for the world, we can have multiple worlds
     {
         Name = 'Name';
         Generator = false;
         IsCallback = false;
         Default = 'World';
         EditMode = 3;
-    };
-    {
+    };{
         Name = 'GetUtility';
         Generator = false;
         IsCallback = false;
@@ -26,7 +28,7 @@ Object:newClass('World', {
         EditMode = 1;
     };
 }, true);
-Object:newClass('Space', {
+Object:newClass('Space', { --Physical objects can be shown here and physics are enabled in this object
     {
         Name = 'Name';
         Generator = false;
@@ -34,18 +36,8 @@ Object:newClass('Space', {
         Default = 'Space';
         EditMode = 3;
 	};
-	{
-        Name = 'Moved';
-        Generator = true;
-        IsCallback = false;
-        Default = function(self)
-			local RippleObject = Ripple:TearRipple('Moved');
-			return Ripple:AttachProcessor(self, 'Moved');
-        end;
-        EditMode = 1;
-    };
 }, true);
-Object:newClass('Time', {
+Object:newClass('Time', { --Manages the time for OBJECTS, not time in general, specifically objects that exist in space.
     {
         Name = 'Name';
         Generator = false;
@@ -54,7 +46,7 @@ Object:newClass('Time', {
         EditMode = 3;
     };
 }, true);
-Object:newClass('Players', {
+Object:newClass('Players', { --What players and their information are created here, only displays players that currently in this world.
     {
         Name = 'Name';
         Generator = false;
@@ -63,25 +55,7 @@ Object:newClass('Players', {
         EditMode = 3;
     };
 }, true);
-Object:newClass('Storage', {
-    {
-        Name = 'Name';
-        Generator = false;
-        IsCallback = false;
-        Default = 'Storage';
-        EditMode = 3;
-    };
-}, true);
-Object:newClass('Database', {
-    {
-        Name = 'Name';
-        Generator = false;
-        IsCallback = false;
-        Default = 'Database';
-        EditMode = 3;
-    };
-}, true);
-Object:newClass('Audio', {
+Object:newClass('Audio', { --Manages audio for the current world.
     {
         Name = 'Name';
         Generator = false;
@@ -90,22 +64,9 @@ Object:newClass('Audio', {
         Default = 'Audio';
     };
 }, true);
-Object:newClass('Window', {
-    {
-        Name = 'Name';
-        Generator = false;
-        IsCallback = false;
-        Default = 'Window';
-        EditMode = 3;
-    };
-    {
-        Name = 'Close';
-        Generator = false;
-        Default = function(self)
-            return love.window.close();
-        end;
-    };
-}, true);
+
+--GLOBAL UTILITIES BELOW-- These are not meant to be replicated from world to world, but they can.
+
 Object:newClass('Http', {
     {
         Name = 'Name';
@@ -120,11 +81,12 @@ Object:newClass('Http', {
         IsCallback = false;
         Default = function(self, url)
             local res = {};
-            local responseData = http.request{
+            local responseData,c,d = require('socket.http').request{
                 url = url;
                 method = 'GET';
                 sink = ltn12.sink.table(res);
             };
+            print(c, d);
             return table.concat(res, '');
         end;
         EditMode = 1;
@@ -270,6 +232,118 @@ Object:newClass('Block', {
     };
 }, false);
 
+Object:newClass('Mouse', {
+    {
+        Name = 'Moved';
+        Generator = true;
+        IsCallback = false;
+        Default = function(self) 
+            local RippleObject = Ripple:TearRipple('Moved');
+			return Ripple:AttachProcessor(self, 'Moved');
+        end;
+        EditMode = 1;
+    };{
+        Name = 'Button1Down';
+        Generator = true;
+        IsCallback = false;
+        Default = function(self) 
+            local RippleObject = Ripple:TearRipple('Button1Down');
+            return Ripple:AttachProcessor(self, 'Button1Down');
+        end;
+        EditMode = 1;
+    };{
+        Name = 'Button1Up';
+        Generator = true;
+        IsCallback = false;
+        Default = function(self) 
+            local RippleObject = Ripple:TearRipple('Button1Up');
+			return Ripple:AttachProcessor(self, 'Button1Up');
+        end;
+        EditMode = 1;
+    };{
+        Name = 'Button2Down';
+        Generator = true;
+        IsCallback = false;
+        Default = function(self) 
+            local RippleObject = Ripple:TearRipple('Button2Down');
+			return Ripple:AttachProcessor(self, 'Button2Down');
+        end;
+        EditMode = 1;
+    };{
+        Name = 'Button2Up';
+        Generator = true;
+        IsCallback = false;
+        Default = function(self) 
+            local RippleObject = Ripple:TearRipple('Button2Up');
+			return Ripple:AttachProcessor(self, 'Button2Up');
+        end;
+        EditMode = 1;
+    };{
+        Name = 'ButtonDown';
+        Generator = true;
+        IsCallback = false;
+        Default = function(self) 
+            local RippleObject = Ripple:TearRipple('ButtonDown');
+			return Ripple:AttachProcessor(self, 'ButtonDown');
+        end;
+        EditMode = 1;
+    };{
+        Name = 'ButtonUp';
+        Generator = true;
+        IsCallback = false;
+        Default = function(self) 
+            local RippleObject = Ripple:TearRipple('ButtonUp');
+			return Ripple:AttachProcessor(self, 'ButtonUp');
+        end;
+        EditMode = 1;
+    };{
+        Name = 'Idle';
+        Generator = true;
+        IsCallback = false;
+        Default = function(self) 
+            local RippleObject = Ripple:TearRipple('Idle');
+			return Ripple:AttachProcessor(self, 'Idle');
+        end;
+        EditMode = 1;
+    };{
+        Name = 'WheelBackward';
+        Generator = true;
+        IsCallback = false;
+        Default = function(self) 
+            local RippleObject = Ripple:TearRipple('WheelBackward');
+			return Ripple:AttachProcessor(self, 'WheelBackward');
+        end;
+        EditMode = 1;
+    };{
+        Name = 'WheelForward';
+        Generator = true;
+        IsCallback = false;
+        Default = function(self) 
+            local RippleObject = Ripple:TearRipple('WheelForward');
+			return Ripple:AttachProcessor(self, 'WheelForward');
+        end;
+        EditMode = 1;
+    };{
+        Name = 'WheelLeft';
+        Generator = true;
+        IsCallback = false;
+        Default = function(self) 
+            local RippleObject = Ripple:TearRipple('WheelLeft');
+			return Ripple:AttachProcessor(self, 'WheelLeft');
+        end;
+        EditMode = 1;
+    };{
+        Name = 'WheelRight';
+        Generator = true;
+        IsCallback = false;
+        Default = function(self) 
+            local RippleObject = Ripple:TearRipple('WheelRight');
+			return Ripple:AttachProcessor(self, 'WheelRight');
+        end;
+        EditMode = 1;
+    };
+}, false);
+
 --Custom Types--
 
 CustomTypes:newType('Vector', {
@@ -405,7 +479,7 @@ CustomTypes:newType('Processor', {
 		is_callback = false;
         edit_mode = 1;
 		default = function(self, callback)
-			local RippleData = Ripple.Ripples[self.Ripple.Name];
+            local RippleData = Ripple.Ripples[self.Ripple.Name];
 			local ClassObject = self.Object;
 			if (RippleData ~= false and ClassObject ~= false) then
 				local Processors = RippleData.Processors;
@@ -624,7 +698,6 @@ Object.ObjectCreated:connect(function(self)
 end);
 
 Object.CurrentWorld = Object:newObject('World');
-for i, v in next, {'Space', 'Time', 'Players', 'Storage', 'Database', 'Http'} do
+for i, v in next, {'Space', 'Time', 'Players', 'Audio'} do
 	Object:newObject(v, Object.CurrentWorld);
 end;
-

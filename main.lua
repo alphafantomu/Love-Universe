@@ -41,11 +41,10 @@ local CurrentWorld = Object.CurrentWorld;
 local Http = CurrentWorld:GetUtility('Http');
 local Space = CurrentWorld:GetUtility('Space');
 
-local Block = Instance.new('Block', Space);
-Block.Changed:connect(function(index, value)
-    print('For object Block', index, 'was changed to', value);
-end);
-Block.Name = 'a';
+local Input = Object:newObject('Mouse');
+
+Input.Button1Down:connect(function(...) print("PRESSED", ...); end);
+Input.Moved:connect(function(...) print("MOVED", ...) end);
 
 --[[
 BlockA.Name = 'Lmao';

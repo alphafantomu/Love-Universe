@@ -62,7 +62,7 @@ local RippleOptions = {
 		local Processors = self.Object.Processors;
 		return Processors[className];
     end;
-	FireRippleProcessorConnections = function(self, obj, ...)
+    FireRippleProcessorConnections = function(self, obj, ...)
 		local ProcessorObject = API:GetProcessorObject(obj);
 		local Connections = ProcessorObject[self.Name];
 		if (Connections ~= nil) then
@@ -76,9 +76,9 @@ local RippleOptions = {
 		end;
 	end;
 	FireProcessorConnections = function(self, className, ...)
-		local Processors = self.Object.Processors;
+        local Processors = self.Object.Processors;
 		local ClassProcessor = Processors[className];
-		if (ClassProcessor ~= nil) then
+        if (ClassProcessor ~= nil) then
 			for i = 1, #ClassProcessor do
 				local Connection = ClassProcessor[i];
 				if (Connection.Connected == true) then
@@ -178,9 +178,9 @@ API.LoveHandlerExists = function(self, id)
 end;
 
 API.AttachProcessor = function(self, classObject, name)
-    if (ProcessorCache[classObject] ~= nil) then return ProcessorCache[classObject]; end;
-	local RippleData = Ripples[name];
-	if (RippleData ~= nil and classObject ~= nil) then
+    if (ProcessorCache[classObject] ~= nil and ProcessorCache[classObject][name] ~= nil) then print'found old'; return ProcessorCache[classObject][name]; end; --something must be wrong here
+    local RippleData = Ripples[name];
+    if (RippleData ~= nil and classObject ~= nil) then
 		local Processors = RippleData.Processors;
 		local className = classObject.ClassName;
 		local ClassProcessor = Processors[className];
@@ -191,7 +191,11 @@ API.AttachProcessor = function(self, classObject, name)
         local Proxy = CustomTypes:createType('Processor');
 		CustomTypes:forceNewIndex(Proxy, 'Ripple', RippleData.Object);
         CustomTypes:forceNewIndex(Proxy, 'Object', classObject);
-        ProcessorCache[classObject] = Proxy;
+
+        local CacheObject = ProcessorCache[classObject];
+        if (CacheObject == nil) then CacheObject = {}; ProcessorCache[classObject] = CacheObject; end;
+        CacheObject[name] = Proxy;
+
         local PerObject = PerProcessor[classObject];
         if (PerObject == nil) then
             PerObject = {};
