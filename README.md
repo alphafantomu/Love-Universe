@@ -9,6 +9,8 @@ The skeleton of the engine is complete, the skeleton being object management, cu
 
 The repository is usable, but you would have to finish writing the objects and their properties yourself, `OEE_Import.lua` contains the registration of custom objects and types, along with their properties.
 
+***When a version is suitable for usage, there will be a new release on the releases page.***
+
 ## Features
 * Object Environment System (Easier understood as a tree system)
 * Custom Typing System (Allows for custom implementation of types)
