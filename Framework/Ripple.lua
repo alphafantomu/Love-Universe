@@ -161,6 +161,27 @@ local ConnectionOptions = {
     end;
 };
 
+API.FireClassRipple = function(self, RippleName, ClassName, ...)
+    local Manage = self:ManageRipple(RippleName);
+    if (Manage ~= nil) then
+        Manage:FireProcessorConnections(ClassName, ...);
+    end;
+end;
+
+API.FireObjectRipple = function(self, RippleName, obj, ...)
+    local Manage = self:ManageRipple(RippleName);
+    if (Manage ~= nil) then
+        Manage:FireRippleProcessorConnections(Obj, ...);
+    end;
+end;
+
+API.FireRipple = function(self, RippleName, ...)
+    local Manage = self:ManageRipple(RippleName);
+    if (Manage ~= nil) then
+        Manage:FireConnections(...);
+    end;
+end;
+
 API.GetProcessorObject = function(self, obj)
     local PerObject = PerProcessor[obj];
     if (PerObject == nil) then

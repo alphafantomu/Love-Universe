@@ -3,65 +3,40 @@ local API = {
 	Mouse = {};
 };
 
-love.keypressed = function(key, scancode, rep)
-    if (API.InputDown ~= nil) then
-        local ManageRipple = Ripple:ManageRipple('InputDown');
-        ManageRipple:FireConnections(key, scancode, rep);
-    end;
+love.touchmoved = function(id, x, y, dx, dy, pressure)
+
 end;
 
-love.keyreleased = function(key, scancode)
-    if (API.InputUp ~= nil) then
-		local ManageRipple = Ripple:ManageRipple('InputUp');
-        ManageRipple:FireConnections(key, scancode);
-    end;
+love.touchpressed = function(id, x, y, dx, dy, pressure)
+
+end;
+
+love.touchreleased = function(id, x, y, dx, dy, pressure)
+
+end;
+
+love.keypressed = function(key, scancode, rep)--
+    Ripple:FireClassRipple('InputDown', 'Keyboard', key, scancode, rep);
+end;
+
+love.keyreleased = function(key, scancode)--
+    Ripple:FireClassRipple('InputUp', 'Keyboard', key, scancode);
 end;
 
 love.mousemoved = function(x, y, dx, dy, isTouch) --idle functionality might be hard
-	local ManageRipple = Ripple:ManageRipple('Moved');
-	if (ManageRipple ~= nil) then
-		ManageRipple:FireProcessorConnections('Mouse', x, y, dx, dy);
-	end;
+    Ripple:FireClassRipple('Moved', 'Mouse', x, y, dx, dy);
 end;
 
 love.mousepressed = function(x, y, button, isTouch, presses)
-	if (button == 1) then
-		local Manager = Ripple:ManageRipple('Button1Down');
-		if (Manager ~= nil) then
-			Manager:FireProcessorConnections('Mouse', x, y, presses);
-		end;
-	elseif (button == 2) then
-		local Manager = Ripple:ManageRipple('Button2Down');
-		if (Manager ~= nil) then
-			Manager:FireProcessorConnections('Mouse', x, y, presses);
-		end;
-	end;
-	local Manager = Ripple:ManageRipple('ButtonDown');
-	if (Manager ~= nil) then
-		Manager:FireProcessorConnections('Mouse', x, y, button, presses);
-	end;
+    Ripple:FireClassRipple('ButtonDown', 'Mouse', x, y, button, presses);
 end;
 
 love.mousereleased = function(x, y, button, isTouch, presses)
-    if (button == 1) then
-		local Manager = Ripple:ManageRipple('Button1Up');
-		if (Manager ~= nil) then
-			Manager:FireProcessorConnections('Mouse', x, y, presses);
-		end;
-	elseif (button == 2) then
-		local Manager = Ripple:ManageRipple('Button2Up');
-		if (Manager ~= nil) then
-			Manager:FireProcessorConnections('Mouse', x, y, presses);
-		end;
-	end;
-	local Manager = Ripple:ManageRipple('ButtonUp');
-	if (Manager ~= nil) then
-		Manager:FireProcessorConnections('Mouse', x, y, button, presses);
-	end;
+	Ripple:FireClassRipple('ButtonUp', 'Mouse', x, y, button, presses);
 end;
 
-love.wheelmoved = function(x, y)
-
+love.wheelmoved = function(x, y) --its not possible for x and y to be moved at the same time
+    Ripple:FireClassRipple('WheelMoved', 'Mouse', x, y);
 end;
 
 
