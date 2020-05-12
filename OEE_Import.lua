@@ -1,4 +1,5 @@
 
+require('Framework/Enumeration');
 require('Framework/Object');
 require('Framework/Type');
 require('Framework/Ripple');
@@ -234,48 +235,61 @@ Object:newClass('Block', {
 
 Object:newClass('Mouse', {
     {
+        Name = 'Hit';
+        Generator = true;
+        IsCallback = false;
+        Default = function(self)
+            local X, Y = love.mouse.getPosition();
+            local vector = CustomTypes:createType('Vector');
+            vector('lock', 'x', 'y'); --you can now lock properties
+            vector.x = X;
+            vector.y = Y;
+            return vector;
+        end;
+        EditMode = 1;
+    };{
+        Name = 'Confined';
+        Generator = false;
+        IsCallback = false;
+        Default = love.mouse.isGrabbed();
+        EditMode = 3;
+    };{
+        Name = 'Visible';
+        Generator = false;
+        IsCallback = false;
+        Default = love.mouse.isVisible();
+        EditMode = 3;
+    };{
+        Name = 'RelativeMode';
+        Generator = false;
+        IsCallback = false;
+        Default = love.mouse.getRelativeMode();
+        EditMode = 3;
+    };{
+        Name = 'Move';
+        Generator = false;
+        IsCallback = false;
+        Default = function(self, x, y) 
+            assert(tonumber(x) ~= nil and tonumber(y) ~= nil, 'Cannot move cursor to a value other than a number')
+            love.mouse.setPosition(x, y);
+            local Hit = self.Hit;
+            CustomTypes:forceNewIndex(Hit, 'x', x);
+            CustomTypes:forceNewIndex(Hit, 'y', y);
+        end;
+        EditMode = 1;
+    };{
+        Name = 'Target'; --wip
+        Generator = false;
+        IsCallback = false;
+        Default = false;
+        EditMode = 1;
+    };{
         Name = 'Moved';
         Generator = true;
         IsCallback = false;
         Default = function(self) 
             local RippleObject = Ripple:TearRipple('Moved');
 			return Ripple:AttachProcessor(self, 'Moved');
-        end;
-        EditMode = 1;
-    };{
-        Name = 'Button1Down';
-        Generator = true;
-        IsCallback = false;
-        Default = function(self) 
-            local RippleObject = Ripple:TearRipple('Button1Down');
-            return Ripple:AttachProcessor(self, 'Button1Down');
-        end;
-        EditMode = 1;
-    };{
-        Name = 'Button1Up';
-        Generator = true;
-        IsCallback = false;
-        Default = function(self) 
-            local RippleObject = Ripple:TearRipple('Button1Up');
-			return Ripple:AttachProcessor(self, 'Button1Up');
-        end;
-        EditMode = 1;
-    };{
-        Name = 'Button2Down';
-        Generator = true;
-        IsCallback = false;
-        Default = function(self) 
-            local RippleObject = Ripple:TearRipple('Button2Down');
-			return Ripple:AttachProcessor(self, 'Button2Down');
-        end;
-        EditMode = 1;
-    };{
-        Name = 'Button2Up';
-        Generator = true;
-        IsCallback = false;
-        Default = function(self) 
-            local RippleObject = Ripple:TearRipple('Button2Up');
-			return Ripple:AttachProcessor(self, 'Button2Up');
         end;
         EditMode = 1;
     };{
@@ -306,44 +320,69 @@ Object:newClass('Mouse', {
         end;
         EditMode = 1;
     };{
-        Name = 'WheelBackward';
+        Name = 'WheelMoved';
         Generator = true;
         IsCallback = false;
         Default = function(self) 
-            local RippleObject = Ripple:TearRipple('WheelBackward');
-			return Ripple:AttachProcessor(self, 'WheelBackward');
-        end;
-        EditMode = 1;
-    };{
-        Name = 'WheelForward';
-        Generator = true;
-        IsCallback = false;
-        Default = function(self) 
-            local RippleObject = Ripple:TearRipple('WheelForward');
-			return Ripple:AttachProcessor(self, 'WheelForward');
-        end;
-        EditMode = 1;
-    };{
-        Name = 'WheelLeft';
-        Generator = true;
-        IsCallback = false;
-        Default = function(self) 
-            local RippleObject = Ripple:TearRipple('WheelLeft');
-			return Ripple:AttachProcessor(self, 'WheelLeft');
-        end;
-        EditMode = 1;
-    };{
-        Name = 'WheelRight';
-        Generator = true;
-        IsCallback = false;
-        Default = function(self) 
-            local RippleObject = Ripple:TearRipple('WheelRight');
-			return Ripple:AttachProcessor(self, 'WheelRight');
+            local RippleObject = Ripple:TearRipple('WheelMoved');
+			return Ripple:AttachProcessor(self, 'WheelMoved');
         end;
         EditMode = 1;
     };
 }, false);
 
+Object:newClass('Keyboard', { --i am going to add more but not right now
+    {
+        Name = 'InputDown';
+        Generator = true;
+        IsCallback = false;
+        Default = function(self) 
+            local RippleObject = Ripple:TearRipple('InputDown');
+			return Ripple:AttachProcessor(self, 'InputDown');
+        end;
+        EditMode = 1;
+    };{
+        Name = 'InputUp';
+        Generator = true;
+        IsCallback = false;
+        Default = function(self) 
+            local RippleObject = Ripple:TearRipple('InputUp');
+			return Ripple:AttachProcessor(self, 'InputUp');
+        end;
+        EditMode = 1;
+    };
+}, false);
+
+Object:newClass('Touchscreen', { --i am going to add more but not right now
+    {
+        Name = 'Moved';
+        Generator = true;
+        IsCallback = false;
+        Default = function(self) 
+            local RippleObject = Ripple:TearRipple('Moved');
+			return Ripple:AttachProcessor(self, 'Moved');
+        end;
+        EditMode = 1;
+    };{
+        Name = 'InputDown';
+        Generator = true;
+        IsCallback = false;
+        Default = function(self) 
+            local RippleObject = Ripple:TearRipple('InputDown');
+			return Ripple:AttachProcessor(self, 'InputDown');
+        end;
+        EditMode = 1;
+    };{
+        Name = 'InputUp';
+        Generator = true;
+        IsCallback = false;
+        Default = function(self) 
+            local RippleObject = Ripple:TearRipple('InputUp');
+			return Ripple:AttachProcessor(self, 'InputUp');
+        end;
+        EditMode = 1;
+    };
+}, false);
 --Custom Types--
 
 CustomTypes:newType('Vector', {
@@ -557,8 +596,8 @@ CustomTypes:newType('Connection', {
 			local Records = Manager.Records;
 			for i = 1, #Records do
 				local RecordData = Records[i];
-				local Record, Index = unpack(RecordData);
-				table.remove(Record, Index);
+                local Record, Index = unpack(RecordData);
+                Record[Index] = nil; --applying table.remove will shift the indexes down, we don't want that as it makes our calculations wrong.
 			end;
         end;
     };
@@ -670,6 +709,20 @@ Color = setmetatable({
 
 --Inits--
 
+local OnChanged = {
+    Mouse = function(self, index, value)
+        if (type(index):lower() == 'string') then
+            if (index == 'Confined') then
+                love.mouse.setGrabbed(value or false);
+            elseif (index == 'Visible') then
+                love.mouse.setVisible(value or true);
+            elseif (index == 'RelativeMode') then
+                love.mouse.setVisible(value or false);
+            end;
+        end;
+    end;
+};
+
 Object.ObjectCreated = Ripple:TearRipple('ObjectCreated');
 Object.PropertyChanged = Ripple:TearRipple('PropertyChanged');
 Waterfall.TimeChanged = Ripple:TearRipple('TimeChanged');
@@ -683,6 +736,7 @@ Object.PropertyChanged:connect(function(self, index, value)
         local ManageRipple = Ripple:ManageRipple('Changed');
         ManageRipple:FireRippleProcessorConnections(self, index, value);
     end;
+    OnChanged[self.ClassName](self, index, value);
 end);
 
 Object.ObjectCreated:connect(function(self)

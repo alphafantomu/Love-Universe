@@ -8,7 +8,8 @@ local Stack = {}; --Psuedo Environment Memory
 
 local NullStack = {}; --this is actually equivalent to the children_stack standard objects have
 local Worlds = {};
-local Blocks = {};
+
+local ObjectsByClass = {};
 
 local UniqueIDs = {};
 local Metatables = {};
@@ -17,7 +18,6 @@ local getrawmetatable = function(obj)
 end;
 
 API.Worlds = Worlds;
-API.Blocks = Blocks;
 
 local BasePropertyAPI = {
     getProperty = function(self, index)
@@ -180,12 +180,21 @@ local DefaultProperties = {
     end;
 	Destroy = function(self) --when we stick it to the object, self should be the object and not the table.
 		local descendant = self.Parent;
-		local stackDescendant = Stack[descendant];
-		if (stackDescendant.__object ~= nil) then
-			stackDescendant.__metatable.__removeChildren(Stack[descendant].__object, self);
-		end;
-		Stack[self] = nil;
-		return Stack[self] == nil;
+        local stackDescendant = Stack[descendant];
+        if (stackDescendant ~= nil) then
+            local meta = stackDescendant.__metatable;
+            if (stackDescendant.__object ~= nil) then
+                meta.__removeChildren(Stack[descendant].__object, self);
+            end;
+        end;
+        local meta = getrawmetatable(self);
+        Stack[self] = nil;
+        local Value = ObjectsByClass[self.ClassName][meta.ClassIndex];
+        if (Value ~= self) then
+            print('Calculation went wrong? Impossible');
+        end;
+        ObjectsByClass[self.ClassName][meta.ClassIndex] = nil;
+        return Stack[self] == nil;
 	end;
 	IsA = function(self, className) --IsA uhhh doesn't support superclasses so this has to be revamped in later versions
 		return className == getrawmetatable(self).classdata.Name;
@@ -351,6 +360,10 @@ API.getBranch = function(self, obj)
             Ancestor.Parent == nil;
         return Ancestors;
     end;
+end;
+
+API.getObjectsByClass = function(self, ClassName)
+    return ObjectsByClass[ClassName];
 end;
 
 API.getFirstAncestor = function(self, obj) --optimized
@@ -543,6 +556,17 @@ API.newObject = function(self, className, parent) --optimized like a madman
         local StackObject = Stack[parent];
         local meta = StackObject.__metatable;
         meta.__addChildren(meta.__object, obj);
+    end;
+    local ClassList = ObjectsByClass[className];
+    if (ClassList == nil) then
+        ClassList = {};
+        ObjectsByClass[className] = ClassList;
+    end;
+    local ObjectIndex = #ClassList + 1;
+    meta.ClassIndex = ObjectIndex;
+    table.insert(ClassList, obj);
+    if (ClassList[ObjectIndex] ~= obj) then
+        print('There was an error calculating objects');
     end;
     if (API.ObjectCreated ~= nil) then
         --[[local Manage = Ripple:ManageConnection(API.CreateConnection);

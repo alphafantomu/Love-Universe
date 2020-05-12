@@ -75,7 +75,21 @@ API.createType = function(self, classType) --creates an object of type
         meta[i] = v;
     end;
     local parsedDictionary = API:parseProperties(data, dictionary);
+    local locked_indexes = {};
     meta.stasis = stasis;
+    meta.__call = function(self, cmd, ...)
+        local indexes = {...};
+        if (cmd ~= nil and type(cmd):lower() == 'string' and cmd == 'lock') then
+            for i = 1, #indexes do
+                locked_indexes[indexes[i]] = 0;
+            end;
+        elseif (cmd ~= nil and type(cmd):lower() == 'string' and cmd == 'unlock') then
+            for i = 1, #indexes do
+                locked_indexes[indexes[i]] = nil;
+            end;
+        end;
+        return data;
+    end;
     meta.__index = function(self, index)
         if (index == 'ClassName') then
             return classType;
@@ -93,7 +107,9 @@ API.createType = function(self, classType) --creates an object of type
         assert(Property.function_dependent == false, 'Cannot write to a property that\'s function dependent');
         assert(parsedDictionary:CanRewrite(index), 'Cannot write a function');
         assert(parsedDictionary:NewValueAcceptable(index, value), 'Attempt to write '..index..' to a '..type(value));
-        rawset(stasis, index, value);
+        if (locked_indexes[index] == nil) then
+            rawset(stasis, index, value);
+        end;
     end;
     meta.__tostring = function(self) --we didnt do the same thing in Object.lua because it did some intensive weird shit and I couldn't handle it because it gave me a fucking headache.
         return classType;
