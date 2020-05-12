@@ -1,5 +1,5 @@
 # Love Universe
-Love Universe is an object environment engine for the LÖVE framework. What is an object environment engine? An object-oriented system used to handle game object's individual ancestry, properties, information and data. Very similarly roblox's framework works like this, the engine is intentionally designed to mimick roblox's own framework and libraries with some differences.
+Love Universe is an object environment engine for the LÖVE framework. What is an object environment engine? An object-oriented system is used to handle game object's individual ancestry, properties, information and data. Very similarly roblox's framework works like this, the engine is intentionally designed to mimick roblox's own framework and libraries with some differences.
 
 ### Why was this made?
 Solely for fun. Also the game engine I'm writing it for is a bit new and odd to me, so as a learning experience I thought it would be enjoyable to do this in-order to learn about it.
