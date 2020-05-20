@@ -331,8 +331,36 @@ Object:newClass('Mouse', {
     };
 }, false);
 
-Object:newClass('Keyboard', { --i am going to add more but not right now
+Object:newClass('Keyboard', { --enable or disable text inputs, and key to scancode vice versa
     {
+        Name = 'HoldToRepeat';
+        Generator = false;
+        IsCallback = false;
+        Default = love.keyboard.hasKeyRepeat();
+        EditMode = 3;
+    };{
+        Name = 'ScreenKeyboardEnabled';
+        Generator = false;
+        IsCallback = false;
+        Default = love.keyboard.hasScreenKeyboard();
+        EditMode = 1;
+    };{
+        Name = 'IsKeyDown';
+        Generator = false;
+        IsCallback = false;
+        Default = function(self, key) 
+            return love.keyboard.isDown(key);
+        end;
+        EditMode = 1;
+    };{
+        Name = 'IsScancodeDown';
+        Generator = false;
+        IsCallback = false;
+        Default = function(self, ...) 
+            return love.keyboard.isScancodeDown(...);
+        end;
+        EditMode = 1;
+    };{
         Name = 'InputDown';
         Generator = true;
         IsCallback = false;
@@ -718,6 +746,13 @@ local OnChanged = {
                 love.mouse.setVisible(value or true);
             elseif (index == 'RelativeMode') then
                 love.mouse.setVisible(value or false);
+            end;
+        end;
+    end;
+    Mouse = function(self, index, value)
+        if (type(index):lower() == 'string') then
+            if (index == 'HoldToRepeat') then
+                love.keyboard.setKeyRepeat(value or false);
             end;
         end;
     end;

@@ -18,6 +18,15 @@ local ClassUpdate = {
             Cache[1] = Position[1];
             Cache[2] = Position[2];
         end;
+	end;};
+	{'Keyboard', function(KeyboardObjects)
+		local screenboardEnabled = love.keyboard.hasScreenKeyboard();
+        for i = 1, #KeyboardObjects do
+            local Keyboard = KeyboardObjects[i];
+			if (Keyboard.ScreenKeyboardEnabled ~= screenboardEnabled) then
+				Object:forceNewIndex(Keyboard, 'ScreenKeyboardEnabled', screenboardEnabled);
+			end;
+        end;
     end;};
 };
 
