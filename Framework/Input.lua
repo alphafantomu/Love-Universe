@@ -4,15 +4,15 @@ local API = {
 };
 
 love.touchmoved = function(id, x, y, dx, dy, pressure)
-
+    print('touch moved');
 end;
 
 love.touchpressed = function(id, x, y, dx, dy, pressure)
-
+    print('touch pressed');
 end;
 
 love.touchreleased = function(id, x, y, dx, dy, pressure)
-
+    print('touch released');
 end;
 
 love.keypressed = function(key, scancode, rep)--

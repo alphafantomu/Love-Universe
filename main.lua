@@ -43,12 +43,8 @@ local Space = CurrentWorld:GetUtility('Space');
 
 local Input = Object:newObject('Mouse');
 local Keyboard = Object:newObject('Keyboard');
-Keyboard.InputDown:connect(function(...)
-local a = {...};
-for i = 1, #a do
-    print(type(a[i]))
-end;
-end);
+Keyboard.InputDown:connect(function(...) print(...) end);
+--print(love.keyboard.setKeyRepeat(true))
 
 function love.load(args) --although this is called exactly at the beginning of the game, the rest of the game code outside runs first.
     love.window.setMode(800, 600, {resizable=true, vsync=false, minwidth=400, minheight=300})
