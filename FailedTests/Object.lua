@@ -1,10 +1,14 @@
 
+--[[
+    This version of Object will try to optimize by removing Null and NullMetatable, this was not successful as it became too fucking complicated for my brain and
+    I did not want to invest in energy onto something I'm not sure will be better
+]]
 --I'm going to be honest with everyone that is reading this, this single script gave me a huge fucking headache.
 
 local API = {}; --main psuedoWorkspace API framework
 local Classes = {}; --contains all the classes that you can create objects from, information about the class included
 local Stack = {}; --Psuedo Environment Memory
-local StackByHash = {};
+
 local NullStack = {}; --this is actually equivalent to the children_stack standard objects have
 local Worlds = {};
 
@@ -183,12 +187,14 @@ local DefaultProperties = {
         return nil;
     end;
 	Destroy = function(self) --when we stick it to the object, self should be the object and not the table.
-		local descendant = self.Parent;
-        local stackDescendant = Stack[descendant];
-        if (stackDescendant ~= nil) then
-            local meta = stackDescendant.__metatable;
-            if (stackDescendant.__object ~= nil) then
-                meta.__removeChildren(Stack[descendant].__object, self);
+        local descendant = self.Parent;
+        if (descendant ~= nil) then
+            local stackDescendant = Stack[descendant];
+            if (stackDescendant ~= nil) then
+                local meta = stackDescendant.__metatable;
+                if (stackDescendant.__object ~= nil) then
+                    meta.__removeChildren(stackDescendant.__object, self);
+                end;
             end;
         end;
         local meta = getrawmetatable(self);
@@ -228,25 +234,24 @@ local DefaultProperties = {
 		meta.__removeChildren(self, unpack(meta.__getChildren(self)));
 	end;
 };
-
 local DefaultMetatable = {
-    {'__tostring', function(self)
+	__tostring = function(self) --this actually isn't fired when you print, which is weird because print internally has tostring embedded into it.
 		local meta = getrawmetatable(self);
 		local standardProperties, defaultProperties, parsed = meta.standardProperties, meta.defaultProperties, meta.parsed;
         if (Stack[self] == nil and self ~= nil) then
             return 'Object removed from stack';
 		end;
         return rawget(standardProperties, 'Name') or parsed:GetDefaultValue('Name') or rawget(defaultProperties, 'ClassName');
-    end;};
-    {'__isPartOfChildren', function(self, child)
+    end;
+	__isPartOfChildren = function(self, child)
         return getrawmetatable(self).children_stack[child] ~= nil;
-    end;};
-    {'__addChildren', function(self, ...)
+	end;
+	--calling meta functions like: meta.__addChildren(self/obj, ...)
+	__addChildren = function(self, ...)
 		local meta = getrawmetatable(self);
 		local children_stack = meta.children_stack;
         local adding = {...};
-        for i = 1, #adding do
-            local v = adding[i];
+        for i, v in next, adding do
             if (children_stack[v] == nil) then
                 children_stack[v] = v;
 				if (Stack[v] ~= nil) then
@@ -254,8 +259,8 @@ local DefaultMetatable = {
                 end;
             end;
         end;
-    end;};
-    {'__getChildren', function(self) --we can optimize this
+    end;
+	__getChildren = function(self)
 		local meta = getrawmetatable(self);
 		local children_stack = meta.children_stack;
         local children = {};
@@ -263,13 +268,12 @@ local DefaultMetatable = {
             table.insert(children, v);
         end;
         return children;
-    end;};
-    {'__removeChildren', function(self, ...)
+    end;
+    __removeChildren = function(self, ...)
 		local meta = getrawmetatable(self);
 		local children_stack = meta.children_stack;
         local removing = {...};
-        for i = 1, #removing do
-            local v = removing[i];
+        for i, v in next, removing do
             if (children_stack[v] ~= nil) then
                 children_stack[v] = nil;
                 if (Stack[v] ~= nil) then
@@ -284,52 +288,13 @@ local DefaultMetatable = {
                         end;
                     end;
                 end;
+                --check if v is a utility, if it is, then remove
             end;
         end;
-    end;};
-    {'__metatable', 'Locked'};
-}
+    end;
 
-API.NullMetatable = {
-	__null = true;
-	__object = nil;
-    __isPartOfChildren = function(self, obj)
-        return NullStack[obj] ~= nil;
-    end;
-    __addChildren = function(self, ...)
-        local adding = {...};
-        for i = 1, #adding do
-            local v = adding[i];
-            if (NullStack[v] == nil) then
-                NullStack[v] = v;
-                if (Stack[v] ~= nil) then
-                    Stack[v].__object.Parent = nil;
-                end;
-            end;
-        end;
-    end;
-    __getChildren = function(self) --we can optimize this
-        local children = {};
-        for i, v in next, NullStack do
-            table.insert(children, v);
-        end;
-        return children;
-    end;
-    __removeChildren = function(self, ...)
-        local removing = {...};
-        for i = 1, #removing do
-            local v = removing[i];
-            if (NullStack[v] ~= nil) then
-                NullStack[v] = nil;
-                if (Stack[v] ~= nil) then
-                    Stack[v].__object.Parent = nil;
-                end;
-            end;
-        end;
-    end;
+	__metatable = 'Locked';
 };
-
-local Null = {__metatable = API.NullMetatable;};
 
 API.generateString = function(self, n) --fuck it dude, made it super short, lesser calculations and randomness
 	local str = '';
@@ -442,31 +407,61 @@ API.removeDescendantFromBranch = function(self, obj, Ancestor)
 end;
 
 API.updateTransferAncestors = function(self, obj, OldMeta, NewMeta)
-	local ObjectDescendants, OldBranch, NewBranch = Descendants[obj], self:getBranch(OldMeta.__object, true), self:getBranch(NewMeta.__object, true);
-	for i = 1, #OldBranch do
-		local Ancestor = OldBranch[i];
-		self:removeDescendantFromBranch(obj, Ancestor);
-		for o = 1, #ObjectDescendants do
-			local Descendant = ObjectDescendants[o];
-			self:removeDescendantFromBranch(Descendant, Ancestor);
-		end;
-	end;
-	for i = 1, #NewBranch do
-		local Ancestor = NewBranch[i];
-		self:addDescendantToBranch(obj, Ancestor);
-		for o = 1, #ObjectDescendants do
-			local Descendant = ObjectDescendants[o];
-			self:addDescendantToBranch(Descendant, Ancestor);
-		end;
-	end;
+    print(self, obj, OldMeta, NewMeta);
+    local ObjectDescendants = Descendants[obj];
+    if (OldMeta ~= nil) then
+        local OldBranch = self:getBranch(OldMeta.__object, true);
+        for i = 1, #OldBranch do --remove from old branch, WE HAVE TO REMOVE NOT ONLY THE OBJECT BUT THE OBJECT'S DESCENDANTS FROM HERE TOO
+            local Ancestor = OldBranch[i];
+            --remove the object from the descendants
+            self:removeDescendantFromBranch(obj, Ancestor);
+            for o = 1, #ObjectDescendants do
+                local Descendant = ObjectDescendants[o];
+                self:removeDescendantFromBranch(Descendant, Ancestor);
+            end;
+        end;
+    end;
+    if (NewMeta ~= nil) then
+        local NewBranch = self:getBranch(NewMeta.__object, true);
+        for i = 1, #NewBranch do --add to new branch, WE HAVE TO ADD NOT ONLY THE OBJECT BUT THE OBJECT'S DESCENDANTS FROM HERE TOO
+            local Ancestor = NewBranch[i];
+            --add the object into the descendants
+            self:addDescendantToBranch(obj, Ancestor);
+            for o = 1, #ObjectDescendants do
+                local Descendant = ObjectDescendants[o];
+                self:addDescendantToBranch(Descendant, Ancestor);
+            end;
+        end;
+    end;
 end;
 
-API.newObject = function(self, className, parent) --optimized like a madman
+API.transferUtilityToAnotherWorld = function(self, classdata, CurrentParent, NewParentObject)
+    if (classdata.Limited == true) then
+        local getCurrentWorld = API:getFirstAncestor(CurrentParent);
+        if (getCurrentWorld == nil) then
+            local nextWorld = API:getFirstAncestor(NewParentObject.__object);
+            if (nextWorld ~= nil) then
+                if (Worlds[nextWorld] == nil) then
+                    Worlds[nextWorld] = {
+                        Utilities = {};
+                    };
+                end;
+                if (Worlds[nextWorld].Utilities[classdata.Name] == nil) then
+                    Worlds[nextWorld].Utilities[classdata.Name] = obj;
+                    if (Worlds[getCurrentWorld].Utilities[classdata.Name] ~= nil and World[nextWorld].Utilities[classdata.Name] == obj) then
+                        Worlds[nextWorld].Utilities[classdata.Name] = nil;
+                    end;
+                end;
+            end;
+        end;
+    end;
+end;
+
+API.newObject = function(self, className, parent)
     assert(Classes[className] ~= nil, className..' Class does not exist'); --We need to check if the class actually exists first
     local obj = newproxy(true);
     local meta = getmetatable(obj);
-    local classdata = Classes[className]; --get information about the class
-    --Service limited to only 1 object per world
+    local classdata = Classes[className];
 	local children_stack = {};
 	local DescendantsTable = {}; --this is only a reference to this object's descendants table, but inside the object will never be referenced
     local defaultProperties = {
@@ -532,60 +527,78 @@ API.newObject = function(self, className, parent) --optimized like a madman
         --[[
             When I was optimizing this, just needed to define the purpose of "Null" and "NullMetatable".
             The code for Parent and everything else is made to be flexible with things like Destroy, and Parenting, I don't know if I will ever remove it
-            I'm actually not even sure if it's super optimized.
         ]]
+
+
         if (type(index):lower() == 'string') then
 			if (index == 'Parent') then
-				assert(value ~= self, 'Attempting to change the parent of an object to itself');
-				local CurrentParent = rawget(defaultProperties, 'Parent');
-                if (value ~= CurrentParent and value ~= obj) then
-					local NewParentObject, OldParentObject = Stack[value] or Null, Stack[CurrentParent] or Null;
-					local NewMeta, OldMeta = NewParentObject.__metatable, OldParentObject.__metatable;
-					local NewLocalObject, OldLocalObject = NewMeta.__isPartOfChildren(NewMeta.__object, self), OldMeta.__isPartOfChildren(OldMeta.__object, self);
-					if (NewLocalObject == false and OldLocalObject == true or
-						NewLocalObject == false and OldMeta == API.NullMetatable) then
-						OldMeta.__removeChildren(OldMeta.__object, self); --rereading my code I just have to hope I know what I'm doing bc I don't remember
-						
-						if (OldMeta.__isPartOfChildren(OldMeta.__object, self) == false) then
-							NewMeta.__addChildren(NewMeta.__object, self);
-                            API:updateTransferAncestors(self, OldMeta, NewMeta);
-                            -----------------------------UTILITY SPECIAL---------------------------does not account for nil values
-                            if (classdata.Limited == true) then
-                                local getCurrentWorld = API:getFirstAncestor(CurrentParent);
-                                if (getCurrentWorld ~= nil) then
-                                    local nextWorld = API:getFirstAncestor(NewParentObject.__object);
-                                    if (nextWorld ~= nil) then
-                                        if (Worlds[nextWorld] == nil) then
-                                            Worlds[nextWorld] = {
-                                                Utilities = {};
-                                            };
-                                        end;
-                                        if (Worlds[nextWorld].Utilities[classdata.Name] == nil) then
-                                            Worlds[nextWorld].Utilities[classdata.Name] = obj;
-                                            if (Worlds[getCurrentWorld].Utilities[classdata.Name] ~= nil and World[nextWorld].Utilities[classdata.Name] == obj) then
-                                                Worlds[nextWorld].Utilities[classdata.Name] = nil;
-                                            end;
-                                        end;
-                                    end;
-                                end;
-                            end;
-                            ------------------------------------------------------------------------
-							rawset(defaultProperties, 'Parent', NewParentObject.__object);
-							if (API.PropertyChanged ~= nil) then
-                                local ManageRipple = Ripple:ManageRipple('PropertyChanged');
-                                ManageRipple:FireConnections(self, index, value);
-							end;
-						else
-							OldMeta.__addChildren(OldMeta.__object, self); --for some fucking reason it failed, so uhh we have to add the obj back into the old parent just incase
+                assert(value ~= self, 'Attempting to change the parent of an object to itself');
+                local CurrentParent = rawget(defaultProperties, 'Parent');
+                --we need to figure out ancestor handling and utility handling here, after I optimize the indexing
+                if (value == nil) then
+                    print('nil to nil')
+                    if (CurrentParent ~= nil) then
+                        local OldParentObject = Stack[CurrentParent];
+                        local OldMeta = OldParentObject.__metatable;
+                        API:updateTransferAncestors(self, OldMeta, nil);
+                        API:transferUtilityToAnotherWorld(classdata, CurrentParent, nil);
+                        OldMeta.__removeChildren(OldMeta.__object, self);
+                        if (OldMeta.__isPartOfChildren(OldMeta.__object, self) == true) then --we don't need to readd the block because if it's still part of children then it's still there, not removed.
                             if (rawget(defaultProperties, 'Parent') ~= OldParentObject.__object) then
-                                rawset(defaultProperties, 'Parent', OldParentObject.__object); --we need to set the parent property of properties to the old object JUST INCASE
+                                rawset(defaultProperties, 'Parent', OldParentObject.__object);
+                            end;
+                            return;
+                        end;
+                    end;
+                    rawset(defaultProperties, 'Parent', nil);
+					if (API.PropertyChanged ~= nil) then
+                        local ManageRipple = Ripple:ManageRipple('PropertyChanged');
+                        ManageRipple:FireConnections(self, index, nil);
+                    end;
+                elseif (CurrentParent == nil and value ~= nil) then
+                    print('nil to obj')
+                    local NewParentObject = Stack[value];
+                    local NewMeta = NewParentObject.__metatable;
+                    if (NewMeta.__isPartOfChildren(NewMeta.__object, self) == false) then
+                        NewMeta.__addChildren(NewMeta.__object, self);--hererererere
+                        API:updateTransferAncestors(self, nil, NewMeta);
+                        API:transferUtilityToAnotherWorld(classdata, CurrentParent, NewParentObject);
+                        rawset(defaultProperties, 'Parent', NewParentObject.__object);
+                        if (API.PropertyChanged ~= nil) then
+                            local ManageRipple = Ripple:ManageRipple('PropertyChanged');
+                            ManageRipple:FireConnections(self, index, value);
+                        end;
+                    end;
+                else
+                    print('obj to obj')
+                    if (value ~= CurrentParent and value ~= obj) then
+                        local NewParentObject, OldParentObject = Stack[value], Stack[CurrentParent];
+                        local NewMeta, OldMeta = NewParentObject.__metatable, OldParentObject.__metatable;
+                        local NewLocalObject, OldLocalObject = NewMeta.__isPartOfChildren(NewMeta.__object, self), OldMeta.__isPartOfChildren(OldMeta.__object, self);
+                        if (NewLocalObject == false and OldLocalObject == true) then
+                            OldMeta.__removeChildren(OldMeta.__object, self); --rereading my code I just have to hope I know what I'm doing bc I don't remember
+                            if (OldMeta.__isPartOfChildren(OldMeta.__object, self) == false) then
+                                NewMeta.__addChildren(NewMeta.__object, self);
+                                API:updateTransferAncestors(self, OldMeta, NewMeta);
+                                API:transferUtilityToAnotherWorld(classdata, CurrentParent, NewParentObject);
+                                rawset(defaultProperties, 'Parent', NewParentObject.__object);
+                                if (API.PropertyChanged ~= nil) then
+                                    local ManageRipple = Ripple:ManageRipple('PropertyChanged');
+                                    ManageRipple:FireConnections(self, index, value);
+                                end;
+                            else
+                                if (rawget(defaultProperties, 'Parent') ~= OldParentObject.__object) then
+                                    rawset(defaultProperties, 'Parent', OldParentObject.__object);
+                                end;
                             end;
                         end;
                     end;
-				end;
+                end;
 				return;
             end;
         end;
+
+
 		parsed:PropertyExists(index, function(res, property)
 			if (res == true) then
 				if (defaultProperties[index] ~= nil) then
@@ -609,23 +622,33 @@ API.newObject = function(self, className, parent) --optimized like a madman
 				end;
 			end;
 		end);
-    end;
-    for i = 1, #DefaultMetatable do
-        local Data = DefaultMetatable[i];
-        meta[Data[1]] = Data[2];
-    end;
+	end;
+	for i, v in next, DefaultMetatable do
+		meta[i] = v;
+	end;
     
-    local UniqueHash = self:generateUnique(10);
-    local StackObject = {
-        __hash = UniqueHash;
+    --[[
+        We need to add all the userdatas to the stack memory
+    ]]
+    local hashIdentify;
+    repeat hashIdentify = self:generateUnique(10); until API:getStackObjectByHash(hashIdentify) == nil;
+    Stack[obj] = {
+        __hash = self:generateUnique(10); --object identification
         __object = obj;
         __metatable = meta;
+        --__Runtime = runtime_data;
 	};
-    Stack[obj] = StackObject;
-    StackByHash[UniqueHash] = StackObject;
     Metatables[obj] = meta;
     Descendants[obj] = DescendantsTable;
-
+    --[[if (classdata.Runtime ~= nil) then
+        Runtime[runtime_data.functionIndex] = runtime_data.void;
+    end;]]
+	--it already exists because of this part
+    --[[if (Stack[parent] ~= nil) then --stack object exists?
+        local StackObject = Stack[parent];
+        local meta = StackObject.__metatable;
+        meta.__addChildren(meta.__object, obj);
+    end;]]
     local ClassList = ObjectsByClass[className];
     if (ClassList == nil) then
         ClassList = {};
@@ -636,18 +659,20 @@ API.newObject = function(self, className, parent) --optimized like a madman
     ClassList[ObjectIndex] = obj;
     if (ClassList[ObjectIndex] ~= obj) then
         print('There was an error calculating objects');
-    end;
+	end;
+    if (API.ObjectCreated ~= nil) then
+        --[[local Manage = Ripple:ManageConnection(API.CreateConnection);
+        Manage:FireCallback(obj, className);]]
+        local Manage = Ripple:ManageRipple('ObjectCreated');
+        Manage:FireConnections(obj);
+	end;
 	if (classdata.Limited == true and parent ~= nil) then
         local getObjectWorld = API:getFirstAncestor(parent);
         local WorldData = Worlds[getObjectWorld];
         assert(WorldData.Utilities[classdata.Name] == nil, 'Object already exists');
         WorldData.Utilities[classdata.Name] = obj;
     end;
-    if (API.ObjectCreated ~= nil) then
-        local Manage = Ripple:ManageRipple('ObjectCreated');
-        Manage:FireConnections(obj);
-	end;
-    obj.Parent = parent;
+	obj.Parent = parent;
     return obj;
 end;
 
@@ -660,8 +685,12 @@ API.newClass = function(self, className, defaultValues, existOne)
     };
 end;
 
-API.getObjectByHash = function(self, hash)
-    return StackByHash[hash];
+API.getStackObjectByHash = function(self, hash)
+    for i, v in next, Stack do
+        if (v.__hash == hash) then
+            return v;
+        end;
+    end;
 end;
 
 API.getStack = function(self)

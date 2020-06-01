@@ -75,17 +75,31 @@ API.createType = function(self, classType) --creates an object of type
         meta[i] = v;
     end;
     local parsedDictionary = API:parseProperties(data, dictionary);
-    local locked_indexes = {};
+	local locked_indexes = {};
+	local changesAttached = {};
+	local attachIndex = {};
     meta.stasis = stasis;
     meta.__call = function(self, cmd, ...)
         local indexes = {...};
-        if (cmd ~= nil and type(cmd):lower() == 'string' and cmd == 'lock') then
-            for i = 1, #indexes do
-                locked_indexes[indexes[i]] = 0;
-            end;
-        elseif (cmd ~= nil and type(cmd):lower() == 'string' and cmd == 'unlock') then
-            for i = 1, #indexes do
-                locked_indexes[indexes[i]] = nil;
+        if (cmd ~= nil and type(cmd):lower() == 'string') then
+            if (cmd == 'lock') then
+                for i = 1, #indexes do
+                    locked_indexes[indexes[i]] = 0;
+                end;
+            elseif (cmd == 'unlock') then
+                for i = 1, #indexes do
+                    locked_indexes[indexes[i]] = nil;
+                end;
+            elseif (cmd == 'attachChange') then
+				local Object, Index = unpack(indexes);
+				local CalculatedIndex = #changesAttached + 1;
+				changesAttached[CalculatedIndex] = {Object, Index};
+				attachIndex[Object] = CalculatedIndex;
+			elseif (cmd == 'detachChange') then
+				local Object = unpack(indexes);
+				local CalculatedIndex = attachIndex[Object];
+				changesAttached[CalculatedIndex] = nil;
+				attachIndex[Object] = nil;
             end;
         end;
         return data;
@@ -97,7 +111,11 @@ API.createType = function(self, classType) --creates an object of type
         local Property = parsedDictionary:getProperty(index);
         assert(Property ~= nil, 'Property doesn\'t exist');
         assert(Property.edit_mode == 1 or Property.edit_mode == 3, 'Cannot read this property');
-        return rawget(stasis, index) or parsedDictionary:GetDefaultValue(index);
+        local Value = rawget(stasis, index);
+        if (Value == nil) then
+            return parsedDictionary:GetDefaultValue(index);
+        end;
+        return Value;
     end;
     
     meta.__newindex = function(self, index, value)
@@ -108,7 +126,19 @@ API.createType = function(self, classType) --creates an object of type
         assert(parsedDictionary:CanRewrite(index), 'Cannot write a function');
         assert(parsedDictionary:NewValueAcceptable(index, value), 'Attempt to write '..index..' to a '..type(value));
         if (locked_indexes[index] == nil) then
-            rawset(stasis, index, value);
+			rawset(stasis, index, value);
+			for i = 1, #changesAttached do
+                local Data = changesAttached[i];
+                if (Data ~= nil) then
+					local UniObject, Index = unpack(Data);
+					local Manager = Ripple:ManageRipple('Changed');
+                    Manager:FireRippleProcessorConnections(UniObject, Index, self);
+					if (Object.PropertyChanged ~= nil) then
+						local ManageRipple = Ripple:ManageRipple('PropertyChanged');
+                        ManageRipple:FireConnections(UniObject, Index, self);
+					end;
+				end;
+			end;
         end;
     end;
     meta.__tostring = function(self) --we didnt do the same thing in Object.lua because it did some intensive weird shit and I couldn't handle it because it gave me a fucking headache.

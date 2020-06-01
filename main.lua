@@ -38,13 +38,42 @@
 require('OEE_Import');
 
 local CurrentWorld = Object.CurrentWorld;
-local Http = CurrentWorld:GetUtility('Http');
+CurrentWorld:SetActive(true);
 local Space = CurrentWorld:GetUtility('Space');
 
-local Input = Object:newObject('Mouse');
+local Input = Object:newObject('Mouse'); --Input:SetIcon('Assets/Ishtar Avenger 4.png');
 local Keyboard = Object:newObject('Keyboard');
-Keyboard.InputDown:connect(function(...) print(...) end);
---print(love.keyboard.setKeyRepeat(true))
+
+local Part = Instance.new('Block', Space);
+
+--[[Children Optimizer code test thing here don't tocuuh or game die soon
+local Container = {};
+for i = 1, 9999999 do
+    local Object = {};
+    local NextIndex = #Container + 1;
+    Container[NextIndex] = Object;
+end;
+Optimizer:registerTableData(Container);
+
+local timer = os.clock();
+print(table.maxn(Container));
+print(os.clock() - timer)
+local timer1 = os.clock();
+print(Optimizer:maxn(Container));
+print(os.clock() - timer1);
+]]
+Input.Moved:connect(function(x, y, dx, dy)
+    Part.Position.x = x;
+    Part.Position.y = y;
+    Part.Size.x = math.random(5, 250);
+    
+end)
+
+Waterfall.TimeChanged:connect(function(dt)
+    if (Part.Parent == Space) then Part.Parent = nil; elseif (Part.Parent == nil) then Part.Parent = Space; end;
+end);
+--Part.Parent = nil;
+Part.Position.x = 250;
 
 function love.load(args) --although this is called exactly at the beginning of the game, the rest of the game code outside runs first.
     love.window.setMode(800, 600, {resizable=true, vsync=false, minwidth=400, minheight=300})

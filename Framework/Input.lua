@@ -1,18 +1,25 @@
 
-local API = {
-	Mouse = {};
-};
+local API = {};
 
+--Touch operations do infact work on Surface Pro 2015, which means they'll probably work on iPhone as well.
 love.touchmoved = function(id, x, y, dx, dy, pressure)
-    print('touch moved');
+    Ripple:FireClassRipple('Moved', 'Touchscreen', id, x, y, dx, dy, pressure);
 end;
 
 love.touchpressed = function(id, x, y, dx, dy, pressure)
-    print('touch pressed');
+    Ripple:FireClassRipple('InputDown', 'Touchscreen', id, x, y, dx, dy, pressure);
 end;
 
 love.touchreleased = function(id, x, y, dx, dy, pressure)
-    print('touch released');
+    Ripple:FireClassRipple('InputUp', 'Touchscreen', id, x, y, dx, dy, pressure);
+end;
+
+love.textinput = function(t)
+    Ripple:FireClassRipple('InputTyped', 'Keyboard', t);
+end;
+
+love.textedited = function(text, start, length) --NO CLUE HOW TO USE THIS
+    --print(text, start, length);
 end;
 
 love.keypressed = function(key, scancode, rep)--
@@ -38,7 +45,5 @@ end;
 love.wheelmoved = function(x, y) --its not possible for x and y to be moved at the same time
     Ripple:FireClassRipple('WheelMoved', 'Mouse', x, y);
 end;
-
-
 
 Input = API;

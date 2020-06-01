@@ -65,12 +65,12 @@ local RippleOptions = {
     FireRippleProcessorConnections = function(self, obj, ...)
 		local ProcessorObject = API:GetProcessorObject(obj);
 		local Connections = ProcessorObject[self.Name];
-		if (Connections ~= nil) then
+        if (Connections ~= nil) then
 			for i = 1, #Connections do
 				local Connection = Connections[i];
 				if (Connection.Connected == true) then
 					local Manager = API:ManageConnection(Connection);
-					Manager:FireCallback(...);
+                    Manager:FireCallback(...);
 				end;
 			end;
 		end;

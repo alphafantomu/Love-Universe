@@ -1,5 +1,6 @@
 
 require('Framework/Enumeration');
+require('Framework/Optimizer');
 require('Framework/Object');
 require('Framework/Type');
 require('Framework/Ripple');
@@ -11,28 +12,79 @@ require('Visuals/Drawing');
 require('Visuals/Waterfall');
 require('Visuals/Particle');
 
+Placeholder = function() end;
 --Object Classes--
 Object:newClass('World', { --Container for the world, we can have multiple worlds
     {
         Name = 'Name';
         Generator = false;
+        Updater = false;
         IsCallback = false;
         Default = 'World';
         EditMode = 3;
     };{
+        Name = 'SetActive';
+        Generator = false;
+        Updater = false;
+        IsCallback = false;
+        Default = function(self, bool)
+            if (bool == true) then
+                Drawing.RenderWorld = self;
+            end;
+        end;
+        EditMode = 1;
+    };{
         Name = 'GetUtility';
         Generator = false;
+        Updater = false;
         IsCallback = false;
 		Default = function(self, utilityClass)
             return Object.Worlds[self].Utilities[utilityClass];
         end;
         EditMode = 1;
+    };{
+        Name = 'StartContact';
+        Generator = false;
+        Updater = false;
+        IsCallback = true;
+		Default = function(self, ...)
+            print('Contact Detected', ...);
+        end;
+        EditMode = 3;
+    };{
+        Name = 'EndContact';
+        Generator = false;
+        Updater = false;
+        IsCallback = true;
+		Default = function(self, ...)
+            print('Contact Ended', ...);
+        end;
+        EditMode = 3;
+    };{
+        Name = 'PreCalculations';
+        Generator = false;
+        Updater = false;
+        IsCallback = true;
+		Default = function(self, ...)
+            print('Precalculations started', ...);
+        end;
+        EditMode = 3;
+    };{
+        Name = 'PostCalculations';
+        Generator = false;
+        Updater = false;
+        IsCallback = true;
+		Default = function(self, ...)
+            print('Postcalculations started', ...);
+        end;
+        EditMode = 3;
     };
 }, true);
 Object:newClass('Space', { --Physical objects can be shown here and physics are enabled in this object
     {
         Name = 'Name';
         Generator = false;
+        Updater = false;
         IsCallback = false;
         Default = 'Space';
         EditMode = 3;
@@ -42,6 +94,7 @@ Object:newClass('Time', { --Manages the time for OBJECTS, not time in general, s
     {
         Name = 'Name';
         Generator = false;
+        Updater = false;
         IsCallback = false;
         Default = 'Time';
         EditMode = 3;
@@ -51,6 +104,7 @@ Object:newClass('Players', { --What players and their information are created he
     {
         Name = 'Name';
         Generator = false;
+        Updater = false;
         IsCallback = false;
         Default = 'Players';
         EditMode = 3;
@@ -60,6 +114,7 @@ Object:newClass('Audio', { --Manages audio for the current world.
     {
         Name = 'Name';
         Generator = false;
+        Updater = false;
         IsCallback = false;
         EditMode = 3;
         Default = 'Audio';
@@ -72,6 +127,7 @@ Object:newClass('Http', {
     {
         Name = 'Name';
         Generator = false;
+        Updater = false;
         IsCallback = false;
         Default = 'Http';
         EditMode = 3;
@@ -79,6 +135,7 @@ Object:newClass('Http', {
     {
         Name = 'Get';
         Generator = false;
+        Updater = false;
         IsCallback = false;
         Default = function(self, url)
             local res = {};
@@ -95,6 +152,7 @@ Object:newClass('Http', {
     {
         Name = 'Post';
         Generator = false;
+        Updater = false;
         IsCallback = false;
         Default = function(self, url, body)
             local res = {};
@@ -116,6 +174,7 @@ Object:newClass('Block', {
     {
         Name = 'Name';
         Generator = false;
+        Updater = false;
         IsCallback = false;
         Default = 'Block';
         EditMode = 3;
@@ -123,12 +182,14 @@ Object:newClass('Block', {
     {
         Name = 'Color';
         Generator = true;
+        Updater = false;
         IsCallback = false;
-        Default = function() 
+        Default = function(self) 
             local color = CustomTypes:createType('Color');
             color.r = 255;
             color.g = 255;
-            color.b = 255;
+			color.b = 255;
+			color('attachChange', self, 'Color');
             return color;
         end;
         EditMode = 3;
@@ -136,11 +197,13 @@ Object:newClass('Block', {
     {
         Name = 'Size';
         Generator = true;
+        Updater = false;
         IsCallback = false;
-		Default = function()
+		Default = function(self)
             local vector = CustomTypes:createType('Vector');
             vector.x = 100;
-            vector.y = 100;
+			vector.y = 100;
+			vector('attachChange', self, 'Size');
             return vector;
         end;
         EditMode = 3;
@@ -148,11 +211,13 @@ Object:newClass('Block', {
     {
         Name = 'Position';
         Generator = true;
+        Updater = false;
         IsCallback = false;
-		Default = function()
+		Default = function(self)
 			local vector = CustomTypes:createType('Vector');
             vector.x = 0;
-            vector.y = 0;
+			vector.y = 0;
+			vector('attachChange', self, 'Position');
             return vector;
         end;
         EditMode = 3;
@@ -160,8 +225,9 @@ Object:newClass('Block', {
     {
         Name = 'Touched';
         Generator = true;
+        Updater = false;
         IsCallback = false;
-        Default = function() 
+        Default = function(self) 
             local RippleObject = Ripple:TearRipple('Touched');
 			return Ripple:AttachProcessor(self, 'Touched');
         end;
@@ -170,11 +236,13 @@ Object:newClass('Block', {
     {
         Name = 'Velocity';
         Generator = true;
+        Updater = false;
         IsCallback = false;
-		Default = function() 
+		Default = function(self) 
             local vector = CustomTypes:createType('Vector');
             vector.x = 0;
-            vector.y = 0;
+			vector.y = 0;
+			vector('attachChange', self, 'Velocity');
             return vector;
         end;
         EditMode = 3;
@@ -182,6 +250,7 @@ Object:newClass('Block', {
     {
         Name = 'CanCollide';
         Generator = false;
+        Updater = false;
         IsCallback = false;
         Default = true;
         EditMode = 3;
@@ -189,6 +258,7 @@ Object:newClass('Block', {
 	{
         Name = 'Massless';
         Generator = false;
+        Updater = false;
         IsCallback = false;
         Default = true;
         EditMode = 3;
@@ -196,6 +266,7 @@ Object:newClass('Block', {
 	{
         Name = 'Transparency';
         Generator = false;
+        Updater = false;
         IsCallback = false;
         Default = 0;
         EditMode = 3;
@@ -203,6 +274,7 @@ Object:newClass('Block', {
 	{
         Name = 'Anchored';
         Generator = true;
+        Updater = false;
         IsCallback = false;
         Default = false;
         EditMode = 3;
@@ -210,6 +282,7 @@ Object:newClass('Block', {
     { --Rotation is not a vector as it doesn't rotate in x or y, it only rotates in one direction.
         Name = 'Rotation';
         Generator = false;
+        Updater = false;
         IsCallback = false;
         Default = 0;
         EditMode = 3;
@@ -217,6 +290,7 @@ Object:newClass('Block', {
     {
         Name = 'DrawMode';
         Generator = false;
+        Updater = false;
         IsCallback = false;
         Default = 'line';
         EditMode = 3;
@@ -224,6 +298,7 @@ Object:newClass('Block', {
     {
         Name = 'Changed';
         Generator = true;
+        Updater = false;
         IsCallback = false;
         Default = function(self)
 			local RippleObject = Ripple:TearRipple('Changed');
@@ -237,37 +312,42 @@ Object:newClass('Mouse', {
     {
         Name = 'Hit';
         Generator = true;
+        Updater = false;
         IsCallback = false;
         Default = function(self)
             local X, Y = love.mouse.getPosition();
             local vector = CustomTypes:createType('Vector');
-            vector('lock', 'x', 'y'); --you can now lock properties
             vector.x = X;
-            vector.y = Y;
+			vector.y = Y;
+			vector('lock', 'x', 'y');
             return vector;
         end;
         EditMode = 1;
     };{
         Name = 'Confined';
         Generator = false;
+        Updater = false;
         IsCallback = false;
         Default = love.mouse.isGrabbed();
         EditMode = 3;
     };{
         Name = 'Visible';
         Generator = false;
+        Updater = false;
         IsCallback = false;
         Default = love.mouse.isVisible();
         EditMode = 3;
     };{
         Name = 'RelativeMode';
         Generator = false;
+        Updater = false;
         IsCallback = false;
         Default = love.mouse.getRelativeMode();
         EditMode = 3;
     };{
         Name = 'Move';
         Generator = false;
+        Updater = false;
         IsCallback = false;
         Default = function(self, x, y) 
             assert(tonumber(x) ~= nil and tonumber(y) ~= nil, 'Cannot move cursor to a value other than a number')
@@ -278,14 +358,34 @@ Object:newClass('Mouse', {
         end;
         EditMode = 1;
     };{
+        Name = 'IsDown';
+        Generator = false;
+        Updater = false;
+        IsCallback = false;
+        Default = function(self, ...) 
+            return love.mouse.isDown(...);
+        end;
+        EditMode = 1;
+    };{
+        Name = 'SetIcon';
+        Generator = false;
+        Updater = false;
+        IsCallback = false;
+		Default = function(self, imagePath)
+			Drawing.MouseIcon = Application:loadImage(imagePath);
+        end;
+        EditMode = 1;
+    };{
         Name = 'Target'; --wip
         Generator = false;
+        Updater = false;
         IsCallback = false;
         Default = false;
         EditMode = 1;
     };{
         Name = 'Moved';
         Generator = true;
+        Updater = false;
         IsCallback = false;
         Default = function(self) 
             local RippleObject = Ripple:TearRipple('Moved');
@@ -295,6 +395,7 @@ Object:newClass('Mouse', {
     };{
         Name = 'ButtonDown';
         Generator = true;
+        Updater = false;
         IsCallback = false;
         Default = function(self) 
             local RippleObject = Ripple:TearRipple('ButtonDown');
@@ -304,6 +405,7 @@ Object:newClass('Mouse', {
     };{
         Name = 'ButtonUp';
         Generator = true;
+        Updater = false;
         IsCallback = false;
         Default = function(self) 
             local RippleObject = Ripple:TearRipple('ButtonUp');
@@ -313,6 +415,7 @@ Object:newClass('Mouse', {
     };{
         Name = 'Idle';
         Generator = true;
+        Updater = false;
         IsCallback = false;
         Default = function(self) 
             local RippleObject = Ripple:TearRipple('Idle');
@@ -322,6 +425,7 @@ Object:newClass('Mouse', {
     };{
         Name = 'WheelMoved';
         Generator = true;
+        Updater = false;
         IsCallback = false;
         Default = function(self) 
             local RippleObject = Ripple:TearRipple('WheelMoved');
@@ -333,20 +437,48 @@ Object:newClass('Mouse', {
 
 Object:newClass('Keyboard', { --enable or disable text inputs, and key to scancode vice versa
     {
+        Name = 'ScancodeToKey';
+        Generator = false;
+        Updater = false;
+        IsCallback = false;
+        Default = function(self, scancode) 
+            return love.keyboard.getKeyFromScancode(scancode);
+        end;
+        EditMode = 1;
+    };{
+        Name = 'KeyToScancode';
+        Generator = false;
+        Updater = false;
+        IsCallback = false;
+        Default = function(self, key) 
+            return love.keyboard.getScancodeFromKey(key);
+        end;
+        EditMode = 1;
+    };{
         Name = 'HoldToRepeat';
         Generator = false;
+        Updater = false;
         IsCallback = false;
         Default = love.keyboard.hasKeyRepeat();
         EditMode = 3;
     };{
+        Name = 'TextInputEnabled';
+        Generator = false;
+        Updater = false;
+        IsCallback = false;
+        Default = love.keyboard.hasTextInput();
+        EditMode = 3;
+    };{
         Name = 'ScreenKeyboardEnabled';
         Generator = false;
+        Updater = true;
         IsCallback = false;
-        Default = love.keyboard.hasScreenKeyboard();
+        Default = function(self) return love.keyboard.hasScreenKeyboard(); end;
         EditMode = 1;
     };{
         Name = 'IsKeyDown';
         Generator = false;
+        Updater = false;
         IsCallback = false;
         Default = function(self, key) 
             return love.keyboard.isDown(key);
@@ -355,6 +487,7 @@ Object:newClass('Keyboard', { --enable or disable text inputs, and key to scanco
     };{
         Name = 'IsScancodeDown';
         Generator = false;
+        Updater = false;
         IsCallback = false;
         Default = function(self, ...) 
             return love.keyboard.isScancodeDown(...);
@@ -363,6 +496,7 @@ Object:newClass('Keyboard', { --enable or disable text inputs, and key to scanco
     };{
         Name = 'InputDown';
         Generator = true;
+        Updater = false;
         IsCallback = false;
         Default = function(self) 
             local RippleObject = Ripple:TearRipple('InputDown');
@@ -372,19 +506,58 @@ Object:newClass('Keyboard', { --enable or disable text inputs, and key to scanco
     };{
         Name = 'InputUp';
         Generator = true;
+        Updater = false;
         IsCallback = false;
         Default = function(self) 
             local RippleObject = Ripple:TearRipple('InputUp');
 			return Ripple:AttachProcessor(self, 'InputUp');
         end;
         EditMode = 1;
+    };{
+        Name = 'InputTyped';
+        Generator = true;
+        Updater = false;
+        IsCallback = false;
+        Default = function(self) 
+            local RippleObject = Ripple:TearRipple('InputTyped');
+			return Ripple:AttachProcessor(self, 'InputTyped');
+        end;
+        EditMode = 1;
     };
 }, false);
 
-Object:newClass('Touchscreen', { --i am going to add more but not right now
+Object:newClass('Touchscreen', {
     {
+        Name = 'GetActiveTouchPresses';
+        Generator = false;
+        Updater = false;
+        IsCallback = false;
+        Default = function(self) 
+            return love.touch.getTouches();
+        end;
+        EditMode = 1;
+    };{
+        Name = 'GetPressureById';
+        Generator = false;
+        Updater = false;
+        IsCallback = false;
+        Default = function(self, id) 
+            return love.touch.getPressure(id);
+        end;
+        EditMode = 1;
+    };{
+        Name = 'GetPositionById';
+        Generator = false;
+        Updater = false;
+        IsCallback = false;
+        Default = function(self, id) 
+            return love.touch.getPosition(id);
+        end;
+        EditMode = 1;
+    };{
         Name = 'Moved';
         Generator = true;
+        Updater = false;
         IsCallback = false;
         Default = function(self) 
             local RippleObject = Ripple:TearRipple('Moved');
@@ -394,6 +567,7 @@ Object:newClass('Touchscreen', { --i am going to add more but not right now
     };{
         Name = 'InputDown';
         Generator = true;
+        Updater = false;
         IsCallback = false;
         Default = function(self) 
             local RippleObject = Ripple:TearRipple('InputDown');
@@ -403,6 +577,7 @@ Object:newClass('Touchscreen', { --i am going to add more but not right now
     };{
         Name = 'InputUp';
         Generator = true;
+        Updater = false;
         IsCallback = false;
         Default = function(self) 
             local RippleObject = Ripple:TearRipple('InputUp');
@@ -434,16 +609,6 @@ CustomTypes:newType('Vector', {
         is_callback = false;
         default = function(self)
             return math.sqrt(self.x^2 + self.y^2);
-        end;
-        edit_mode = 1;
-    };
-    {
-        index = 'Changed';
-        function_dependent = true;
-        is_callback = false;
-        default = function(self)
-            local RippleObject = Ripple:TearRipple('Changed');
-			return Ripple:AttachProcessor(self, 'Changed');
         end;
         edit_mode = 1;
     };
@@ -741,49 +906,68 @@ local OnChanged = {
     Mouse = function(self, index, value)
         if (type(index):lower() == 'string') then
             if (index == 'Confined') then
-                love.mouse.setGrabbed(value or false);
+                love.mouse.setGrab(value);
             elseif (index == 'Visible') then
-                love.mouse.setVisible(value or true);
+                love.mouse.setVisible(value);
             elseif (index == 'RelativeMode') then
-                love.mouse.setVisible(value or false);
+                love.mouse.setVisible(value);
+            elseif (index == 'HoldToRepeat') then
+                love.keyboard.setKeyRepeat(value);
             end;
         end;
     end;
-    Mouse = function(self, index, value)
+    Keyboard = function(self, index, value)
         if (type(index):lower() == 'string') then
             if (index == 'HoldToRepeat') then
-                love.keyboard.setKeyRepeat(value or false);
+                love.keyboard.setKeyRepeat(value);
+            elseif (index == 'TextInputEnabled') then
+                love.keyboard.setTextInput(value);
             end;
         end;
+	end;
+	World = function(self, index, value)
+		if (type(index):lower() == 'string') then
+            if (index == 'StartContact' or index == 'EndContact' or index == 'PreCalculations' or index == 'PostCalculations') then
+                Physics:UpdateUniverseObject(self, index, value);
+            end;
+        end;
+    end;
+	Block = function(self, index, value)
+        Physics:UpdateUniverseObject(self, index, value);
     end;
 };
 
 Object.ObjectCreated = Ripple:TearRipple('ObjectCreated');
+Object.ObjectDestroyed = Ripple:TearRipple('ObjectDestroyed');
 Object.PropertyChanged = Ripple:TearRipple('PropertyChanged');
 Waterfall.TimeChanged = Ripple:TearRipple('TimeChanged');
 
 --We can use Object.PropertyChanged to reverse time.
 --Just realized another issue with the connection ugh.
-Object.PropertyChanged:connect(function(self, index, value)
+Object.PropertyChanged:connect(function(self, index, value) --this occurs after it has been changed
     local Changed = self.Changed;
     if (Changed ~= nil and type(Changed):lower() == 'processor') then
         local ClassName = self.ClassName;
         local ManageRipple = Ripple:ManageRipple('Changed');
         ManageRipple:FireRippleProcessorConnections(self, index, value);
+	end;
+    if (OnChanged[self.ClassName] ~= nil) then
+        OnChanged[self.ClassName](self, index, value);
     end;
-    OnChanged[self.ClassName](self, index, value);
 end);
 
 Object.ObjectCreated:connect(function(self)
     local Class = self.ClassName;
+    Physics:RegisterUniverseObject(self);
     if (Class == 'World' and Object.Worlds[self] == nil) then
         Object.Worlds[self] = {
             Utilities = {};
         };
-        --Physics:
-    elseif (Class == 'Block') then
-        table.insert(Object.Blocks, self);
     end;
+end);
+
+Object.ObjectDestroyed:connect(function(self)
+
 end);
 
 Object.CurrentWorld = Object:newObject('World');
