@@ -46,18 +46,28 @@ local Keyboard = Object:newObject('Keyboard');
 
 local Part = Instance.new('Block', Space);
 
---[[Children Optimizer code test thing here don't tocuuh or game die soon
+local Object = {};
 local Container = {};
-for i = 1, 9999999 do
-    local Object = {};
-    local NextIndex = #Container + 1;
-    Container[NextIndex] = Object;
-end;
-Optimizer:registerTableData(Container);
 
+for i = 1, 100 do
+    if (i ~= 53) then
+    Container[i] = Object;
+    end;
+end;
+Optimizer:Optimize(Container);
+local Data = Optimizer:ReceiveData(Container);
+for i = 1, #Data do
+    local Section = Data[i];
+    print('__________'..tostring(Section)..'_____________');
+    table.foreach(Section, print);
+    print'_______________________';
+end;
+Container[9.5] = Object;
+--[[
 local timer = os.clock();
 print(table.maxn(Container));
 print(os.clock() - timer)
+
 local timer1 = os.clock();
 print(Optimizer:maxn(Container));
 print(os.clock() - timer1);

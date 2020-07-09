@@ -545,7 +545,6 @@ API.newObject = function(self, className, parent) --optimized like a madman
 					if (NewLocalObject == false and OldLocalObject == true or
 						NewLocalObject == false and OldMeta == API.NullMetatable) then
 						OldMeta.__removeChildren(OldMeta.__object, self); --rereading my code I just have to hope I know what I'm doing bc I don't remember
-						
 						if (OldMeta.__isPartOfChildren(OldMeta.__object, self) == false) then
 							NewMeta.__addChildren(NewMeta.__object, self);
                             API:updateTransferAncestors(self, OldMeta, NewMeta);

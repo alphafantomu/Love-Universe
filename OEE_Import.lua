@@ -1,6 +1,6 @@
 
 require('Framework/Enumeration');
-require('Framework/Optimizer');
+require('Framework/OptimizerRewrite2');
 require('Framework/Object');
 require('Framework/Type');
 require('Framework/Ripple');

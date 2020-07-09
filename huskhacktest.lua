@@ -2,7 +2,7 @@ local run = game:service'RunService';
 local plr = game.Players.LocalPlayer;
 local char = plr.Character;
 local Longsword = char.Longsword;
-local Hitbox = Longsword.Hitbox;
+local Hitbox = Longsword.Blade.Hitbox;
 local child = Hitbox:children();
 _G.rot = 0;
 _G.rotChange = .001;
@@ -14,7 +14,7 @@ for i = 1, #child do
     local obj = child[i];
     if (obj:IsA('Attachment') and obj.Name == 'DmgPoint') then
         obj.Visible = true;
-        for i = 1, 5 do
+        for i = 1, 25 do
             local a = obj:clone();
             a.Parent = obj.Parent;
             table.insert(dmgPoints, a);
@@ -31,7 +31,7 @@ run.RenderStepped:connect(function(dt)
         local y = 5 * sin(_G.rot * i);
         local z = 5 * sin(_G.rot * i);
         if (_G.world == false) then
-            point.CFrame = CFrame.new((function() 
+            point.CFrame = point.CFrame * CFrame.Angles(math.rad(_G.rot), math.rad(_G.rot), math.rad(_G.rot));--[[CFrame.new((function() 
                 if (_G.x ~= nil) then
                     return _G.x(_G.rot, i);
                 end;
@@ -43,7 +43,7 @@ run.RenderStepped:connect(function(dt)
                 if (_G.z ~= nil) then
                     return _G.z(_G.rot, i);
                 end;
-            end)() or z);
+            end)() or z);]]
         elseif (_G.world == true) then
             point.WorldCFrame = CFrame.new((function() 
                 if (_G.x ~= nil) then
@@ -123,3 +123,25 @@ _G.z = function(rot, index)
 	return (1 + .9 * cos(8 * x)) * (1 + .1 * cos(24 * x)) * (.9 + .05 * cos(200 * x)) * (1 + sin(x));
 end;
 ]]
+
+
+local sin, cos, tan = math.sin, math.cos, math.tan;
+local random = math.random;
+local run = game:service'RunService';
+local x, y, z = random(-250, 250), random(-250, 250), random(1, 250);
+run.RenderStepped:connect(function(dt)
+	x, y, z = random(-250, 250), random(-250, 250), random(1, 250);
+	_G.x = function(rot, index)
+	    local t = rot * index;
+		return x * (1/math.sqrt(x^2 + y^2 + z^2)) * 5;
+	end;
+	_G.y = function(rot, index)
+	    local t = rot * index;
+		return y * (1/math.sqrt(x^2 + y^2 + z^2)) * 5;
+	end;
+	_G.z = function(rot, index)
+	    local t = rot * index;
+		return z * (1/math.sqrt(x^2 + y^2 + z^2)) * 5;
+	end;
+end);
+
